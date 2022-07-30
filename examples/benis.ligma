@@ -1,0 +1,17 @@
+benis 420 set ; variable 'benis' with value of 420
+benis2 69 set ; variable 'benis2' with value of 69
+
+; subroutine for determining impressiveness
+is-benis-impressive (lambda 
+	100 > if (
+		"yes, the benis is impressive" print
+	) else (
+		"no, this benis is not impressive" print
+	)
+) set 
+
+; copy of the is-benis-impressive subroutine
+isit [is-benis-impressive] set
+
+benis isit ; prints "yes, [...]"
+benis2 isit ; prints "no, [...]"
