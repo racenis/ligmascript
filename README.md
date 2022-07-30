@@ -21,9 +21,10 @@ is-impressive (lambda
 	)
 ) set
 
-; Since the language doesn't have any standard way to get command line input,
-; you'd have to load it into the interpreter in the REPL mode and then you could
-; call the is-impressive subroutine like this:
+; Since the language doesn't have any standard way to get command
+; line input, you'd have to load it into the interpreter in the
+; REPLmode and then you could call the is-impressive subroutine
+; like this:
 
 150 is-impressive 
 ```
