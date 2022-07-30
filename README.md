@@ -4,13 +4,16 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 
 ## Example
 
-### Hello world
+#### Hello world
 
-```"hellow wworld uwu ;33" print ```
+```
+"hellow wworld uwu ;33" print 
+```
 
-### Is Impressive
+#### Is Impressive
 
-```is-impressive (lambda
+```
+is-impressive (lambda
 	100 > if (
 		"yes, it's an impressive" print
 	) else (
@@ -22,7 +25,8 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 ; you'd have to load it into the interpreter in the REPL mode and then you could
 ; call the is-impressive subroutine like this:
 
-150 is-impressive ```
+150 is-impressive 
+```
 
 ## Compilation
 
