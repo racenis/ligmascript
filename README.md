@@ -1,6 +1,8 @@
 # LIGMAScript
 
-Very good programming language. The name stands for **LI**st **G**eneral **M**anipulation and **A**rithmetic **Script**. You can read more about it on the [github.com page](https://racenis.github.io/ligmascript/). 
+![LIGMAScript logo](/docs/ligma_logo_spacious.gif)
+
+Very good programming language. The name stands for **LI**st **G**eneral **M**anipulation and **A**rithmetic **Script**. You can read more about it on the [github.io page](https://racenis.github.io/ligmascript/). 
 
 ## Example
 
@@ -23,7 +25,7 @@ is-impressive (lambda
 
 ; Since the language doesn't have any standard way to get command
 ; line input, you'd have to load it into the interpreter in the
-; REPLmode and then you could call the is-impressive subroutine
+; REPL mode and then you could call the is-impressive subroutine
 ; like this:
 
 150 is-impressive 
