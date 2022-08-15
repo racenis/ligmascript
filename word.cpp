@@ -142,7 +142,7 @@ namespace ligma {
             value = other.value;
             no_delete = true;
         } else {
-            throw Exception("Assignment error.");
+            //throw Exception("Assignment error.");
         }
     }
 

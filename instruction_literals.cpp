@@ -15,7 +15,7 @@ const char* const ligma::bytecode_instruction_str[] = {
         "RESERVED10",
         "RESERVED11",
         "RESERVED12",
-        "RESERVED13",
+        "LINE",
         "NATIVECALL",
         "ASSIGN",
         "EXECUTEWORD",
@@ -41,8 +41,8 @@ const char* const ligma::bytecode_instruction_str[] = {
         "PUSH_VECTOR",
         "PUSH_STRING",
         "LISTAPPEND",
-        "S40",
-        "S41",
+        "LISTNEXT",
+        "LISTDATA",
         "S42",
         "S43",
         "S44",
@@ -115,3 +115,42 @@ const char* const ligma::bytecode_instruction_str[] = {
         "FUGG",
         "BENIS"
 };
+
+const char* ligma::Exception::exceptstr() const {
+    switch (error) {
+        case STACK_OVERFLOW:
+            return "Stack overflow";
+        case STACK_UNDERFLOW:
+            return "Stack underflow";
+        case STACK_EMPTYACCESS:
+            return "Attempting to read empty stack";
+        case POOL_OVERFLOW:
+            return "Pool overflow";
+        case RANDOM_SQUARE_BRACKET:
+            return "Random square bracket";
+        case NOT_BRACKET_AFTER_IF:
+            return "Expected '(' after 'if'";
+        case NOT_BRACKET_AFTER_ELSE:
+            return "Expected '(' after 'else'";
+        case UNDEFINED_NATIVE_CALL:
+            return "Undefined native call";
+        case INVALID_JUMP_ADDRESS:
+            return "Invalid jump address";
+        case INVALID_CONDITION:
+            return "Vector or undefined used as a condition";
+        case LIST_APPEND_NOT_LIST:
+            return "Appending to something that is not a list";
+        case NOT_IMPLEMENTED:
+            return "Not implemented";
+        case INCOMPATIBLE_COMPARISON_TYPES:
+            return "Comparison of incompatible types";
+        case INCOMPATIBLE_COMPARISON_SIZES:
+            return "Comparison of incompatible sizes";
+        case INCOMPATIBLE_ARITHMETIC_TYPES:
+            return "Arithmetic of incompatible types";
+        case INCOMPATIBLE_ARITHMETIC_SIZES:
+            return "Arithmetic of incompatible sizes";
+        case INVALID_TYPE_CONVERSION:
+            return "Invalid type conversion";
+    }
+}

@@ -16,6 +16,7 @@ namespace ligma {
                                std::istreambuf_iterator<char>());
 
         bytecodes.emplace_back();
+        strncpy(bytecodes.back().name, filename, 14);
         bytecodes.back().compile(code_string.c_str());
 
         InterpreterState prep_state;

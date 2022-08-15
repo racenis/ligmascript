@@ -3,6 +3,7 @@
 #include "ligma.h"
 #include "ligma_wrapper.h"
 
+/*
 int main() {
     // here's some ligmascript code
     std::string ligmascript_code = "begonis (lambda 0 call) set ";
@@ -48,6 +49,19 @@ int main() {
     console_interpreter.interpret();
 
     // you can type "exit" into the console to stop the interpreter
+
+    return 0;
+}
+*/
+
+int main() {
+
+    ligma::LoadFile("examples/lines.ligma");
+
+    ligma::ConsoleInterpreter console_interpreter;
+
+    console_interpreter.interpret();
+
 
     return 0;
 }

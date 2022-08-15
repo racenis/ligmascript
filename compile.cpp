@@ -42,6 +42,7 @@ namespace ligma {
     }
 
     void Bytecode::compile_token(const char* const token) {
+        try {
         bool list_appendable = false;
 
         if (stack.top().state == state::COMMENT) {
@@ -52,24 +53,26 @@ namespace ligma {
         if (stack.top().state == state::BLOCKSTART) {
             if (strcmp(token, "vec") == 0) {
                 stack.pop();
-                stack.push(state { state::VECTOR });
+                stack.push(state{state::VECTOR});
                 return;
             } else if (strcmp(token, "list") == 0) {
                 stack.pop();
-                stack.push(state { state::LIST });
+                stack.push(state{state::LIST});
                 append(PUSH_LIST);
                 return;
             } else if (strcmp(token, "lambda") == 0) {
                 stack.pop();
                 append(PUSH_LAMBDA);
-                append((param_t)(bytecode_last + 5));
+                append((param_t) (bytecode_last + 5));
                 append(JUMP);
-                stack.push(state { state::LAMBDA, bytecode_last });
+                stack.push(state{state::LAMBDA, bytecode_last});
                 append((param_t) -1);
+                append(LINE);
+                append(bytecode_line);
                 return;
             } else {
                 stack.pop();
-                stack.push(state { state::BLOCK });
+                stack.push(state{state::BLOCK});
             }
         } else if (stack.top().state == state::VECTOR) {
             auto type = best_fit_numeric(token);
@@ -78,17 +81,17 @@ namespace ligma {
                 append(PUSHFLOAT32);
                 append(literals_last);
                 stack.pop();
-                stack.push(state {state::VECTORFLOAT32 });
+                stack.push(state{state::VECTORFLOAT32});
             } else if (type == Word::INT64) {
                 append(PUSHINT64);
                 append(literals_last);
                 stack.pop();
-                stack.push(state {state::VECTORINT64 });
+                stack.push(state{state::VECTORINT64});
             } else {
                 append(PUSHUINT64);
                 append(literals_last);
                 stack.pop();
-                stack.push(state{state::VECTORUINT64 });
+                stack.push(state{state::VECTORUINT64});
             }
             // note that we do not do a return here
         }
@@ -124,9 +127,10 @@ namespace ligma {
 
 
         if (stack.top().state == state::STRINGLITERAL) {
-            if (strcmp(token, "'") == 0 || strcmp(token, "\"") == 0) {
+            if (strcmp(token, "'") == 0 && stack.top().bytecode_offset == 0 ||
+                strcmp(token, "\"") == 0 && stack.top().bytecode_offset == 1) {
                 append("\0", 1);
-                append((param_t)(stack.pop().parameter + 1));
+                append((param_t) (stack.pop().parameter + 1));
                 return;
             } else {
                 auto len = strlen(token);
@@ -150,20 +154,20 @@ namespace ligma {
         }
 
         if (stack.top().state == state::IFSTART) {
-            if(strcmp(token, "(") != 0) {
-                throw Exception("Expected '(' after an 'if'.");
+            if (strcmp(token, "(") != 0) {
+                throw Exception(Exception::NOT_BRACKET_AFTER_IF);
             } else {
                 stack.pop();
                 append(JUMPIFNOT);
-                stack.push(state { state::IFBLOCK, bytecode_last});
+                stack.push(state{state::IFBLOCK, bytecode_last});
                 append((param_t) -1);
                 return;
             }
         }
 
         if (stack.top().state == state::ELSESTART) {
-            if(strcmp(token, "(") != 0) {
-                throw Exception("Expected '(' after an 'else'.");
+            if (strcmp(token, "(") != 0) {
+                throw Exception(Exception::NOT_BRACKET_AFTER_ELSE);
             } else {
                 stack.top().state = state::ELSEBLOCK;
                 return;
@@ -176,7 +180,7 @@ namespace ligma {
                 auto jump_param = bytecode_last;
                 append((param_t) -1);
                 insert(bytecode_last, stack.pop().bytecode_offset);
-                stack.push(state {state::ELSESTART, jump_param});
+                stack.push(state{state::ELSESTART, jump_param});
                 return;
             } else {
                 insert(bytecode_last, stack.pop().bytecode_offset);
@@ -184,11 +188,12 @@ namespace ligma {
             }
         }
 
+        // this long chain of if/else's isn't very efficient, but it's simple and works
         if (false) {
         } else if (strcmp(token, ";") == 0) {
-            stack.push(state { state::COMMENT });
+            stack.push(state{state::COMMENT});
         } else if (strcmp(token, "(") == 0) {
-            stack.push(state { state::BLOCKSTART, bytecode_last });
+            stack.push(state{state::BLOCKSTART, bytecode_last});
         } else if (strcmp(token, ")") == 0) {
             if (stack.top().state == state::LAMBDA) {
                 append(RETURN);
@@ -205,11 +210,15 @@ namespace ligma {
                 stack.pop();
             }
         } else if (strcmp(token, "[") == 0) {
-            stack.push(state { state::PUSHINGWORD});
+            stack.push(state{state::PUSHINGWORD});
         } else if (strcmp(token, "]") == 0) {
-            return;
+            throw Exception(Exception::RANDOM_SQUARE_BRACKET);
         } else if (strcmp(token, "'") == 0 || strcmp(token, "\"") == 0) {
-            stack.push(state { state::STRINGLITERAL });
+            if (strcmp(token, "'") == 0) {
+                stack.push(state{state::STRINGLITERAL, 0});
+            } else {
+                stack.push(state{state::STRINGLITERAL, 1});
+            }
             append(PUSH_STRING);
             append(literals_last);
             list_appendable = true;
@@ -219,28 +228,64 @@ namespace ligma {
             param_t len = strlen(token);
             append(token + 1, len);
             append(len);
+        } else if (strcmp(token, "car") == 0) {
+            append(LISTDATA);
+        } else if (strcmp(token, "cdr") == 0) {
+            append(LISTNEXT);
         } else if (strcmp(token, ".s") == 0) {
             append(PRINTSTACK);
         } else if (strcmp(token, "if") == 0) {
-            stack.push(state { state::IFSTART });
+            stack.push(state{state::IFSTART});
         } else if (strcmp(token, "print") == 0) {
             append(PRINTINFO);
         } else if (strcmp(token, "+") == 0) {
             append(ADDITION);
+        } else if (strcmp(token, "+") == 0) {
+            append(ADDITION);
+        } else if (strcmp(token, "-") == 0) {
+            append(SUBTRACTION);
+        } else if (strcmp(token, "*") == 0) {
+            append(MULTIPLICATION);
+        } else if (strcmp(token, "/") == 0) {
+            append(DIVISION);
+        } else if (strcmp(token, "**") == 0) {
+            append(EXPONENT);
+        } else if (strcmp(token, "/*") == 0) {
+            append(MODULO);
         } else if (strcmp(token, "=") == 0) {
             append(EQUAL);
         } else if (strcmp(token, ">") == 0) {
             append(GREATERTHAN);
         } else if (strcmp(token, "<") == 0) {
             append(LESSERTHAN);
+        } else if (strcmp(token, "=<") == 0) {
+            append(LESSEROREQUAL);
+        } else if (strcmp(token, ">=") == 0) {
+            append(GREATEROREQUAL);
+        } else if (strcmp(token, "and") == 0) {
+            append(AND);
+        } else if (strcmp(token, "or") == 0) {
+            append(OR);
         } else if (strcmp(token, "set") == 0) {
             append(ASSIGN);
         } else if (strcmp(token, "call") == 0) {
             append(NATIVECALL);
+        } else if (strcmp(token, "drop") == 0) {
+            append(DROP);
+        } else if (strcmp(token, "over") == 0) {
+            append(OVER);
+        } else if (strcmp(token, "swap") == 0) {
+            append(SWAP);
+        } else if (strcmp(token, "rot") == 0) {
+            append(ROTATE);
+        } else if (strcmp(token, "dup") == 0) {
+            append(DUPLICATE);
         } else if (strcmp(token, ".s") == 0) {
             append(PRINTSTACK);
         } else if (strcmp(token, "\n") == 0) {
-            //std::cout << "linebreak"; // TODO: add some kind of line break code here
+            bytecode_line++;
+            append(LINE);
+            append(bytecode_line);
         } else if ((token[0] >= '0' && token[0] <= '9') || token[0] == '-' || token[0] == '+') {
             auto type = best_fit_numeric(token);
             list_appendable = true;
@@ -274,12 +319,13 @@ namespace ligma {
 
         if (stack.top().state == state::LIST) {
             if (!list_appendable) {
-                throw Exception ("List unappendable type");
+                //throw Exception ("List unappendable type");
             }
             append(LISTAPPEND);
         }
-
-        //std::cout << std::endl;
+        } catch (Exception& e) {
+            std::cout << "Compiler error: " << e.exceptstr() << " at line " << bytecode_line << " in " << name << std::endl;
+        }
     }
 
     void Bytecode::compile (const char* code) {

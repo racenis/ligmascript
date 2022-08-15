@@ -9,6 +9,35 @@ namespace ligma {
     typedef uint8_t instr_t;    // bytecode instruction
     typedef uint16_t param_t;   // bytecode instruction parameter
 
+    class Exception : std::exception {
+    public:
+        enum error_type {
+            STACK_OVERFLOW,
+            STACK_UNDERFLOW,
+            STACK_EMPTYACCESS,
+            POOL_OVERFLOW,
+            RANDOM_SQUARE_BRACKET,
+            NOT_BRACKET_AFTER_IF,
+            NOT_BRACKET_AFTER_ELSE,
+            UNDEFINED_NATIVE_CALL,
+            INVALID_JUMP_ADDRESS,
+            INVALID_CONDITION,
+            LIST_APPEND_NOT_LIST,
+            NOT_IMPLEMENTED,
+            INCOMPATIBLE_COMPARISON_TYPES,
+            INCOMPATIBLE_COMPARISON_SIZES,
+            INCOMPATIBLE_ARITHMETIC_TYPES,
+            INCOMPATIBLE_ARITHMETIC_SIZES,
+            INVALID_TYPE_CONVERSION,
+        };
+
+        error_type error;
+
+        Exception(error_type error) : error(error) {}
+        const char* exceptstr() const;
+        const char* what(){ return exceptstr(); }
+    };
+
     // TODO: add some safety check asserts for the templates
     template <typename T, size_t maxsize>
     class Stack {
@@ -21,15 +50,13 @@ namespace ligma {
             last++;
 
             if (last > maxsize) {
-                std::cout << "Stack size exceeded. Aborting." << std::endl;
-                abort();
+                throw Exception(Exception::STACK_OVERFLOW);
             }
         }
 
         T& pop () {
             if (last == 0) {
-                std::cout << "Attempting to pop an empty stack. Aborting." << std::endl;
-                abort();
+                throw Exception(Exception::STACK_UNDERFLOW);
             }
             last--;
             return stack[last];
@@ -37,8 +64,7 @@ namespace ligma {
 
         T& top () {
             if (last == 0) {
-                std::cout << "Attempting to access an empty stack. Aborting." << std::endl;
-                abort();
+                throw Exception(Exception::STACK_EMPTYACCESS);
             }
             return stack[last - 1];
         }
@@ -66,8 +92,7 @@ namespace ligma {
 
             pool[selected_space] = element;
             if (last > maxsize) {
-                std::cout << "Stack size exceeded. Aborting." << std::endl;
-                abort();
+                throw Exception(Exception::POOL_OVERFLOW);
             }
 
             return selected_space;
@@ -103,7 +128,7 @@ namespace ligma {
         RESERVED10,
         RESERVED11,
         RESERVED12,
-        RESERVED13,
+        LINE,
         NATIVECALL,
         ASSIGN,
         EXECUTEWORD,
@@ -129,8 +154,8 @@ namespace ligma {
         PUSH_VECTOR,
         PUSH_STRING,
         LISTAPPEND,
-        S40,
-        S41,
+        LISTNEXT,
+        LISTDATA,
         S42,
         S43,
         S44,
@@ -205,14 +230,6 @@ namespace ligma {
     };
 
     extern const char* const bytecode_instruction_str[];
-
-    // TODO: make exceptions more meaningful
-    class Exception : std::exception {
-        const std::string exception_str;
-        public:
-        Exception(const std::string exception_str) : exception_str(exception_str) {}
-        const char* what(){ return exception_str.c_str(); }
-    };
 
     void collect_garbage ();
     param_t find_word (const char* name);
@@ -318,8 +335,10 @@ namespace ligma {
         static const size_t literals_max_size = 1000;
         instr_t bytecode[bytecode_max_size];
         char literals[literals_max_size];
+        char name[15] = "untitled";
         param_t bytecode_last = 0;
         param_t literals_last = 0;
+        param_t bytecode_line = 1;
 
         // the state is the state of the bytecode's compilation
         struct state {
@@ -364,6 +383,7 @@ namespace ligma {
         struct StackElement {
             Bytecode* bytecode;
             param_t bytecode_offset;
+            param_t bytecode_line;
         };
 
         Stack<StackElement, 50> stack;  // subroutine stack
@@ -380,6 +400,7 @@ namespace ligma {
 
         void interpret () {
             std::string inputs = " ";
+            strcpy(b_code.name, "interpreter");
             param_t b_code_offset = b_code.bytecode_last;
 
             while (inputs != "quit " && inputs != "exit " && continue_) {
