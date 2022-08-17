@@ -4,7 +4,7 @@
 
 namespace ligma {
     std::unordered_map<std::string, param_t> word_names;
-    Pool<Word, 500> all_words;
+    Pool<Word, 500> all_words = {Word{}};
     void (*native_calls[250])(InterpreterState&) = { nullptr };
 
     param_t find_word (const char* name) {
@@ -232,11 +232,17 @@ namespace ligma {
             append(LISTDATA);
         } else if (strcmp(token, "cdr") == 0) {
             append(LISTNEXT);
+        } else if (strcmp(token, "setcar") == 0) {
+            append(LISTDATAASSIGN);
+        } else if (strcmp(token, "setcdr") == 0) {
+            append(LISTNEXTASSIGN);
         } else if (strcmp(token, ".s") == 0) {
             append(PRINTSTACK);
         } else if (strcmp(token, "if") == 0) {
             stack.push(state{state::IFSTART});
-        } else if (strcmp(token, "print") == 0) {
+        } else if (strcmp(token, "print") == 0 || strcmp(token, ".") == 0) {
+            append(PRINT);
+        } else if (strcmp(token, "printinfo") == 0  || strcmp(token, "..") == 0) {
             append(PRINTINFO);
         } else if (strcmp(token, "+") == 0) {
             append(ADDITION);
@@ -282,6 +288,10 @@ namespace ligma {
             append(DUPLICATE);
         } else if (strcmp(token, ".s") == 0) {
             append(PRINTSTACK);
+        } else if (strcmp(token, "nil") == 0) {
+            append(PUSHWORD);
+            append(UNINIT_REF);
+            list_appendable = true;
         } else if (strcmp(token, "\n") == 0) {
             bytecode_line++;
             append(LINE);
@@ -311,15 +321,16 @@ namespace ligma {
             }
         } else {
             // assuming that the token represents a word
-            append(EXECUTEWORD);
+            append(PUSHWORD);
             append(find_word(token));
+            append(EXECUTEWORD);
             list_appendable = true;
             //std::cout << "adding word";
         }
 
         if (stack.top().state == state::LIST) {
             if (!list_appendable) {
-                //throw Exception ("List unappendable type");
+                throw Exception (Exception::LIST_UNAPPENDABLE);
             }
             append(LISTAPPEND);
         }
@@ -357,9 +368,7 @@ namespace ligma {
             buffer_last++;
         }
 
-        append(RETURN);
+        if (stack.top().state == Bytecode::state::NONE) append(RETURN);
     }
-
-
 
 }

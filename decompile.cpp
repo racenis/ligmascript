@@ -10,11 +10,11 @@ namespace ligma {
                             i]]);
 
             switch(bytecode[i]){
-                case EXECUTEWORD:
+                /*case EXECUTEWORD:
                     i++;
                     printf("%d", *((unsigned short*)(bytecode + i)));
                     i++;
-                    break;
+                    break;*/
                 case PUSHWORD:
                     i++;
                     printf("%d", *((unsigned short*)(bytecode + i)));

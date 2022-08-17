@@ -9,6 +9,8 @@ namespace ligma {
     typedef uint8_t instr_t;    // bytecode instruction
     typedef uint16_t param_t;   // bytecode instruction parameter
 
+    const param_t UNINIT_REF = 0;
+
     class Exception : std::exception {
     public:
         enum error_type {
@@ -23,12 +25,14 @@ namespace ligma {
             INVALID_JUMP_ADDRESS,
             INVALID_CONDITION,
             LIST_APPEND_NOT_LIST,
+            LIST_UNAPPENDABLE,
             NOT_IMPLEMENTED,
             INCOMPATIBLE_COMPARISON_TYPES,
             INCOMPATIBLE_COMPARISON_SIZES,
             INCOMPATIBLE_ARITHMETIC_TYPES,
             INCOMPATIBLE_ARITHMETIC_SIZES,
             INVALID_TYPE_CONVERSION,
+            INVALID_TYPE_ASSIGNMENT,
         };
 
         error_type error;
@@ -111,6 +115,10 @@ namespace ligma {
         size_t size () { return last; }
 
         bool is_valid (const param_t ref) { return *((uint64_t*)(&pool[ref])) != 0; }
+
+        Pool(const T& elem) {
+            add(elem);
+        }
     };
 
     enum bytecode_instruction : instr_t {
@@ -144,7 +152,7 @@ namespace ligma {
         FML10,
         PRINTSTACK,
         PRINTINFO,
-        TEST3,
+        PRINT,
         TEST4,
         PUSHINT64,
         PUSHUINT64,
@@ -156,8 +164,8 @@ namespace ligma {
         LISTAPPEND,
         LISTNEXT,
         LISTDATA,
-        S42,
-        S43,
+        LISTNEXTASSIGN,
+        LISTDATAASSIGN,
         S44,
         S45,
         S46,
@@ -239,6 +247,7 @@ namespace ligma {
             UNDEFINED,
             BYTECODE,
             LIST,
+            REFERENCE,
             STRING,
             INT64,
             INT32,
@@ -253,35 +262,39 @@ namespace ligma {
         };
 
         Type type = UNDEFINED;
-        void* value = nullptr;
+        union { void* value = nullptr; struct { param_t car; param_t cdr; };} ;
         size_t size = 0;
         size_t references = 0;
         bool no_delete = true;
         bool no_collect = true;
 
-        // TODO: add a seperate print and printinfo method
+        void print();
         void print_info();
 
-        const char *type_as_str() const;
+        [[nodiscard]] const char *type_as_str() const;
 
-        size_t type_size() const;
+        [[nodiscard]] size_t type_size() const;
 
-        bool type_is_int () { return type == INT64 || type == INT32 || type == INT16 || type == INT8;}
-        bool type_is_uint () { return type == UINT64 || type == UINT32 || type == UINT16 || type == UINT8;}
-        bool type_is_float () { return type == FLOAT64 || type == FLOAT32;}
-        bool type_is_numeric () { return type_is_int() || type_is_uint() || type_is_float(); }
+        [[nodiscard]] bool type_is_int () const { return type == INT64 || type == INT32 || type == INT16 || type == INT8; }
+        [[nodiscard]] bool type_is_uint () const { return type == UINT64 || type == UINT32 || type == UINT16 || type == UINT8; }
+        [[nodiscard]] bool type_is_float () const { return type == FLOAT64 || type == FLOAT32; }
+        [[nodiscard]] bool type_is_numeric () const { return type_is_int() || type_is_uint() || type_is_float(); }
+        [[nodiscard]] bool type_is_reference () const { return type == LIST || type == REFERENCE; }
 
         int64_t value_as_int (size_t vec_index); uint64_t value_as_uint (size_t vec_index); float value_as_float (size_t vec_index);
+        uint8_t value_as_logic();
 
         void clean ();
         void copy_from (Word& other);
+        void cannibalize (Word& other);
+        void make_reference_to (param_t word);
 
     };
 
     /// pool where all the words are stored
     extern Pool<Word, 500> all_words;
 
-    struct List {
+    /*struct List {
         struct ListElement {
             Word* word = nullptr;
             ListElement* next = nullptr;
@@ -317,7 +330,7 @@ namespace ligma {
             first = nullptr;
             last = nullptr;
         }
-    };
+    };*/
 
     /// special stack for word references that updates the referenced word's reference count
     template <size_t maxsize>

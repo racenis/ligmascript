@@ -31,7 +31,7 @@ const char* const ligma::bytecode_instruction_str[] = {
         "FML10",
         "PRINTSTACK",
         "PRINTINFO",
-        "TEST3",
+        "PRINT",
         "TEST4",
         "PUSHINT32",
         "PUSHUINT32",
@@ -43,8 +43,8 @@ const char* const ligma::bytecode_instruction_str[] = {
         "LISTAPPEND",
         "LISTNEXT",
         "LISTDATA",
-        "S42",
-        "S43",
+        "LISTNEXTASSIGN",
+        "LISTDATAASSIGN",
         "S44",
         "S45",
         "S46",
@@ -152,5 +152,9 @@ const char* ligma::Exception::exceptstr() const {
             return "Arithmetic of incompatible sizes";
         case INVALID_TYPE_CONVERSION:
             return "Invalid type conversion";
+        case INVALID_TYPE_ASSIGNMENT:
+            return "Invalid type assignment";
+        case LIST_UNAPPENDABLE:
+            return "Value not appendable to a list";
     }
 }

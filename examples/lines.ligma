@@ -1,15 +1,3 @@
-" i need my begonis! " print
+;" i need my begonis! " print
 isit (lambda if ("true" print) else ("false" print)) set
-69 69 = isit
-420 69 > isit
-69 420 < isit
-
-69 420 = isit
-69 420 > isit
-420 69 < isit
-
-420 420 > isit
-69 69 < isit
-
-
 

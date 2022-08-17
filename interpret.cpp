@@ -1,8 +1,20 @@
+#include <cmath>
 #include "ligma.h"
 
 namespace ligma {
     void intp_comp_lessthan (InterpreterState& state);
     void intp_comp_greaterthan (InterpreterState& state);
+
+    void logic_value (InterpreterState& state, const uint8_t& value) {
+        state.ref_stack.push(all_words.add(Word{
+                Word::UINT8,
+                new uint8_t(value),
+                1,
+                0,
+                false,
+                false
+        }));
+    }
 
     template <auto float_comp, auto int_comp, auto uint_comp>
     void stack_comparison (InterpreterState& state) {
@@ -111,20 +123,33 @@ try {
 
         switch (instr) {
             case EXECUTEWORD: {
-                auto ref = all_words.get(param);
+                auto ref_n = ref_stack.pop();
+                auto ref = all_words.get(ref_n);
 
                 if (ref.type == Word::BYTECODE) {
                     stack.push(StackElement{(Bytecode *) ref.value, (param_t) ref.size});
-                } /*else if (ref.type != Word::UNDEFINED) {
+                } else if (ref.type == Word::REFERENCE) {
+                    if (ref.car != UNINIT_REF && all_words.get(ref.car).type == Word::BYTECODE) {
+                        auto& bcode = all_words.get(ref.car);
+                        stack.push(StackElement{(Bytecode *) bcode.value, (param_t) bcode.size});
+                    } else {
+                        ref_stack.push(ref.car);
+                    }
+
+
+                    /*else if (ref.type != Word::UNDEFINED) {
                     // wtf why is this here
                     auto word = all_words.add(Word());
                     all_words.get(word).copy_from(ref);
                     ref_stack.push(word);
-                }*/ else {
-                    ref_stack.push(param);
+                }*/
+
+                } else {
+                    ref_stack.push(ref_n);
                 }
 
-                counter += 3;
+                //counter += 3;
+                counter++;
             }
                 break;
             case PUSHWORD: {
@@ -156,9 +181,10 @@ try {
             case JUMPIFNOT: {
                 auto &condition = all_words.get(ref_stack.pop());
 
-                if (condition.size != 1) throw Exception(Exception::INVALID_CONDITION);
+                // TODO: figure out if vectors can be evaluated as jumpys
+                //if (condition.size != 1) throw Exception(Exception::INVALID_CONDITION);
                 if (param == (param_t) -1) throw Exception(Exception::INVALID_JUMP_ADDRESS);
-                if (!condition.value_as_uint(0)) {
+                if (!condition.value_as_logic()/*!condition.value_as_uint(0)*/) {
                     counter = param;
                 } else {
                     counter += 3;
@@ -166,13 +192,19 @@ try {
             }
                 break;
             case ASSIGN: {
-                auto &right = all_words.get(ref_stack.pop());
+                auto right_n = ref_stack.pop();
+                auto &right = all_words.get(right_n);
                 auto &left = all_words.get(ref_stack.pop());
 
-                // TODO: add fast copy
-                // if right has no refs after being popped, then you could just transfer
-                // the data pointer to left and then yeet the right
-                left.copy_from(right);
+                // maybe should add a 'is referenced by word-name' bool
+                // instead of no_delete. then can check directly
+                if (right.references == 0 && !right.no_delete) {
+                    left.cannibalize(right);
+                } else {
+                    left.make_reference_to(right_n);
+                }
+
+                //left.copy_from(right);
 
                 counter++;
             }
@@ -192,7 +224,7 @@ try {
             case PUSH_LIST: {
                 ref_stack.push(all_words.add(Word{
                         Word::LIST,
-                        new List,
+                        nullptr,
                         0,
                         0,
                         false,
@@ -206,15 +238,66 @@ try {
                 auto left = ref_stack.pop();
                 auto &left_w = all_words.get(left);
 
-                if (left_w.type != Word::LIST) throw Exception (Exception::LIST_APPEND_NOT_LIST);
+                if (!left_w.type_is_reference()) throw Exception (Exception::LIST_APPEND_NOT_LIST);
+                if (left_w.car == UNINIT_REF) left_w.car = right;
+                else {
+                    auto n_list = all_words.add(Word{
+                            Word::LIST,
+                            nullptr,
+                            0,
+                            1,
+                            false,
+                            false
+                    });
+                    all_words.get(n_list).car = right;
+                    all_words.get(n_list).cdr = UNINIT_REF;
+                    auto appdbl = left;
+                    while (all_words.get(appdbl).cdr != UNINIT_REF) appdbl = all_words.get(appdbl).cdr;
+                    all_words.get(appdbl).cdr = n_list;
+                }
 
-                ((List *) left_w.value)->append(right);
-
+                all_words.get(right).references++;
                 ref_stack.push(left);
 
                 counter++;
             }
                 break;
+            case LISTDATA: {
+                auto right = ref_stack.pop();
+                auto &right_w = all_words.get(right);
+
+                ref_stack.push(right_w.car);
+                counter++;
+            } break;
+            case LISTNEXT: {
+                auto right = ref_stack.pop();
+                auto &right_w = all_words.get(right);
+
+                ref_stack.push(right_w.cdr);
+                counter++;
+            } break;
+            case LISTDATAASSIGN: {
+                auto right = ref_stack.pop();
+                auto left = ref_stack.pop();
+                auto &right_w = all_words.get(right);
+                auto &left_w = all_words.get(left);
+
+                if (left_w.car != UNINIT_REF) all_words.get(left_w.car).references--;
+                left_w.car = right;
+                right_w.references++;
+                counter++;
+            } break;
+            case LISTNEXTASSIGN: {
+                auto right = ref_stack.pop();
+                auto left = ref_stack.pop();
+                auto &right_w = all_words.get(right);
+                auto &left_w = all_words.get(left);
+
+                if (left_w.cdr != UNINIT_REF) all_words.get(left_w.cdr).references--;
+                left_w.cdr = right;
+                right_w.references++;
+                counter++;
+            } break;
             case PUSHFLOAT32: {
                 ref_stack.push(all_words.add(Word{
                         Word::FLOAT32,
@@ -263,60 +346,57 @@ try {
                 counter += 5;
             }
                 break;
+            case DROP: {
+                ref_stack.pop();
+                counter++;
+            } break;
+            case SWAP: {
+                auto right = ref_stack.pop();
+                auto left = ref_stack.pop();
+                ref_stack.push(right);
+                ref_stack.push(left);
+                counter++;
+            } break;
+            case OVER: {
+                auto right = ref_stack.pop();
+                auto left = ref_stack.pop();
+                ref_stack.push(left);
+                ref_stack.push(right);
+                ref_stack.push(left);
+                counter++;
+            } break;
+            case ROTATE: {
+                auto right = ref_stack.pop();
+                auto middle = ref_stack.pop();
+                auto left = ref_stack.pop();
+                ref_stack.push(middle);
+                ref_stack.push(right);
+                ref_stack.push(left);
+                counter++;
+            } break;
+            case DUPLICATE: {
+                auto right = ref_stack.pop();
+                ref_stack.push(right);
+                ref_stack.push(right);
+                counter++;
+            } break;
             case EQUAL: {
-                // TODO: move this into a seperate function
                 stack_comparison<[](float a, float b){ return a == b; },
                         [](int64_t a, int64_t b){ return a == b; },
                         [](uint64_t a, uint64_t b){ return a == b; }>(*this);
                 counter++;
-                /*auto &right = all_words.get(ref_stack.pop());
-                auto &left = all_words.get(ref_stack.pop());
-
-                if (left.size != right.size) {
-                    throw Exception(Exception::INCOMPATIBLE_COMPARISON_SIZES);
-                }
-
-                if (left.type_is_float() && left.type_is_float()) {
-                    for (size_t i = 0; i < left.size; i++)
-                        if (left.value_as_float(i) != right.value_as_float(i))
-                            goto comp_false;
-                    goto comp_true;
-                } else if (left.type_is_int() && left.type_is_int()) {
-                    throw Exception(Exception::NOT_IMPLEMENTED);
-                } else if (left.type_is_uint() && left.type_is_uint()) {
-                    throw Exception(Exception::NOT_IMPLEMENTED);
-                } else {
-                    throw Exception(Exception::INCOMPATIBLE_COMPARISON_TYPES);
-                }
-
-                comp_false:
-                ref_stack.push(all_words.add(Word{
-                        Word::UINT8,
-                        new uint8_t(0),
-                        1,
-                        0,
-                        false,
-                        false
-                }));
-                goto comp_end;
-                comp_true:
-                ref_stack.push(all_words.add(Word{
-                        Word::UINT8,
-                        new uint8_t(1),
-                        1,
-                        0,
-                        false,
-                        false
-                }));
-                goto comp_end;
-                comp_end:*/
-                //counter++;
             }
                 break;
             case LESSERTHAN:
                 stack_comparison<[](float a, float b){ return a < b; },
                         [](int64_t a, int64_t b){ return a < b; },
                         [](uint64_t a, uint64_t b){ return a < b; }>(*this);
+                counter++;
+                break;
+            case LESSEROREQUAL:
+                stack_comparison<[](float a, float b){ return a <= b; },
+                        [](int64_t a, int64_t b){ return a <= b; },
+                        [](uint64_t a, uint64_t b){ return a <= b; }>(*this);
                 counter++;
                 break;
             case GREATERTHAN:
@@ -327,10 +407,60 @@ try {
                 stack_comparison<comp_gt_float, comp_gt_int, comp_gt_uint>(*this);
                 counter++;
                 break;
+            case GREATEROREQUAL:
+                stack_comparison<[](float a, float b){ return a >= b; },
+                        [](int64_t a, int64_t b){ return a >= b; },
+                        [](uint64_t a, uint64_t b){ return a >= b; }>(*this);
+                counter++;
+                break;
+            case AND: {
+                auto &right = all_words.get(ref_stack.pop());
+                auto &left = all_words.get(ref_stack.pop());
+                //if (right.size != 1 || left.size != 1) throw Exception(Exception::INVALID_CONDITION);
+                logic_value(*this, right.value_as_logic() && left.value_as_logic());
+                counter++;
+            } break;
+            case OR: {
+                auto &right = all_words.get(ref_stack.pop());
+                auto &left = all_words.get(ref_stack.pop());
+                //if (right.size != 1 || left.size != 1) throw Exception(Exception::INVALID_CONDITION);
+                logic_value(*this, right.value_as_logic() || left.value_as_logic());
+                counter++;
+            } break;
             case ADDITION:
                 stack_operation_two<[](float a, float b){ return a + b; },
                         [](int64_t a, int64_t b){ return a + b; },
                         [](uint64_t a, uint64_t b){ return a + b; }>(*this);
+                counter++;
+                break;
+            case SUBTRACTION:
+                stack_operation_two<[](float a, float b){ return a - b; },
+                        [](int64_t a, int64_t b){ return a - b; },
+                        [](uint64_t a, uint64_t b){ return a - b; }>(*this);
+                counter++;
+                break;
+            case MULTIPLICATION:
+                stack_operation_two<[](float a, float b){ return a * b; },
+                        [](int64_t a, int64_t b){ return a * b; },
+                        [](uint64_t a, uint64_t b){ return a * b; }>(*this);
+                counter++;
+                break;
+            case DIVISION:
+                stack_operation_two<[](float a, float b){ return a / b; },
+                        [](int64_t a, int64_t b){ return a / b; },
+                        [](uint64_t a, uint64_t b){ return a / b; }>(*this);
+                counter++;
+                break;
+            case MODULO:
+                stack_operation_two<[](float a, float b){ return std::fmod(a, b); },
+                        [](int64_t a, int64_t b){ return a % b; },
+                        [](uint64_t a, uint64_t b){ return a % b; }>(*this);
+                counter++;
+                break;
+            case EXPONENT:
+                stack_operation_two<[](float a, float b){ return std::pow(a, b); },
+                        [](int64_t a, int64_t b){ return std::pow(a, b); },
+                        [](uint64_t a, uint64_t b){ return std::pow(a, b); }>(*this);
                 counter++;
                 break;
             case PRINTSTACK: {
@@ -341,6 +471,7 @@ try {
                               all_words.get(ref_restack.top()).type_as_str() << "] ";
                     ref_stack.push(ref_restack.pop());
                 }
+                if (ref_stack.size() == 0) std::cout << "empty";
                 std::cout << std::endl;
 
                 counter++;
@@ -349,6 +480,13 @@ try {
             case PRINTINFO: {
                 auto var = ref_stack.pop();
                 all_words.get(var).print_info();
+                counter++;
+            }
+                break;
+            case PRINT: {
+                auto var = ref_stack.pop();
+                all_words.get(var).print();
+                std::cout << std::endl;
                 counter++;
             }
                 break;
@@ -375,72 +513,7 @@ try {
 
 
 
-    int64_t Word::value_as_int (size_t vec_index) {
-        if (type_is_int()) {
-            switch (type) {
-                case INT64:
-                    return *(((int64_t*)value) + vec_index);
-                case INT32:
-                    return *(((int32_t*)value) + vec_index);
-                case INT16:
-                    return *(((int16_t*)value) + vec_index);
-                case INT8:
-                    return *(((int8_t*)value) + vec_index);
-                default:
-                    return 0;
-            }
-        } else if (type_is_uint()) {
-            return value_as_uint(vec_index);
-        } else if (type_is_float()){
-            return value_as_float(vec_index);
-        } else {
-            throw Exception(Exception::INVALID_TYPE_CONVERSION);
-        }
-    }
 
-    uint64_t Word::value_as_uint (size_t vec_index) {
-        if (type_is_int()) {
-            return value_as_uint(vec_index);
-        } else if (type_is_uint()) {
-            switch (type) {
-                case UINT64:
-                    return *(((uint64_t*)value) + vec_index);
-                    break;
-                case UINT32:
-                    return *(((uint32_t*)value) + vec_index);
-                    break;
-                case UINT16:
-                    return *(((uint16_t*)value) + vec_index);
-                    break;
-                case UINT8:
-                    return *(((uint8_t*)value) + vec_index);
-                    break;
-            }
-        } else if (type_is_float()){
-            return value_as_float(vec_index);
-        } else {
-            throw Exception(Exception::INVALID_TYPE_CONVERSION);
-        }
-    }
-
-    float Word::value_as_float (size_t vec_index) {
-        if (type_is_int()) {
-            return value_as_int(vec_index);
-        } else if (type_is_uint()) {
-            return value_as_uint(vec_index);
-        } else if (type_is_float()){
-            switch (type) {
-                case FLOAT64:
-                    return *(((double*)value) + vec_index);
-                    break;
-                case FLOAT32:
-                    return *(((float*)value) + vec_index);
-                    break;
-            }
-        } else {
-            throw Exception(Exception::INVALID_TYPE_CONVERSION);
-        }
-    }
 
 
 
