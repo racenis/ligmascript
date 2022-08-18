@@ -209,6 +209,9 @@ namespace ligma {
             } else if (stack.top().state == state::BLOCK) {
                 stack.pop();
             }
+        } else if (strcmp(token, "recurse") == 0) {
+            append(JUMP);
+            append((param_t)(stack.top().bytecode_offset + 2));
         } else if (strcmp(token, "[") == 0) {
             stack.push(state{state::PUSHINGWORD});
         } else if (strcmp(token, "]") == 0) {
@@ -228,6 +231,7 @@ namespace ligma {
             param_t len = strlen(token);
             append(token + 1, len);
             append(len);
+            list_appendable = true;
         } else if (strcmp(token, "car") == 0) {
             append(LISTDATA);
         } else if (strcmp(token, "cdr") == 0) {
@@ -276,6 +280,10 @@ namespace ligma {
             append(ASSIGN);
         } else if (strcmp(token, "call") == 0) {
             append(NATIVECALL);
+        } else if (strcmp(token, "execute") == 0) {
+            append(EXECUTEWORD);
+        } else if (strcmp(token, "return") == 0) {
+            append(RETURN);
         } else if (strcmp(token, "drop") == 0) {
             append(DROP);
         } else if (strcmp(token, "over") == 0) {

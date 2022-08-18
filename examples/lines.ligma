@@ -1,3 +1,13 @@
 ;" i need my begonis! " print
-isit (lambda if ("true" print) else ("false" print)) set
+;isit (lambda 100 > if ("true" print) else ("false" print)) set
+
+;benis printer
+;foreach (lambda over if (over car over execute) else (return) over cdr over recurse) set ;will trash
+;benis (list (list `jānis 420) (list `mpriekšn 4) (list `regejs 14)) set
+;printer (lambda dup car print `:%t print cdr car isit `%n print) set
+
+; 2 3
+
+; 3
+
 

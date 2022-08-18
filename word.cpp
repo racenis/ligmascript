@@ -21,12 +21,12 @@ namespace ligma {
                 if (value) {
                     std::cout << "[";
                     if (car != UNINIT_REF) {
-                        all_words.get(car).print_info();
+                        all_words.get(car).print();
                     }
                     auto element = cdr;
                     while (element != UNINIT_REF) {
                         std::cout << ", ";
-                        all_words.get(all_words.get(element).car).print_info();
+                        all_words.get(all_words.get(element).car).print();
                         element = all_words.get(element).cdr;
                     }
                     std::cout << "]";
@@ -44,6 +44,10 @@ namespace ligma {
                         s++;
                         if(*s == 't') {
                             *d = '\t';
+                        } else if(*s == 'n') {
+                            *d = '\n';
+                        } else {
+                            *d = *s;
                         }
                     } else {
                         *d = *s;

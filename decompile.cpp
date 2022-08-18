@@ -25,6 +25,11 @@ namespace ligma {
                     printf("%d", *((unsigned short*)(bytecode + i)));
                     i++;
                     break;
+                case LINE:
+                    i++;
+                    printf("%d", *((unsigned short*)(bytecode + i)));
+                    i++;
+                    break;
                 case JUMPIFNOT:
                     i++;
                     printf("%d", *((unsigned short*)(bytecode + i)));

@@ -114,7 +114,7 @@ namespace ligma {
 
     void InterpreterState::interpret() {
 try {
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 1000; i++) {
         auto &b = stack.top();
         param_t &counter = b.bytecode_offset;
         instr_t &instr = *(b.bytecode->bytecode + b.bytecode_offset);
@@ -200,6 +200,8 @@ try {
                 // instead of no_delete. then can check directly
                 if (right.references == 0 && !right.no_delete) {
                     left.cannibalize(right);
+                } else if (right.type == Word::BYTECODE) {
+                    left.copy_from(right);
                 } else {
                     left.make_reference_to(right_n);
                 }
@@ -486,7 +488,7 @@ try {
             case PRINT: {
                 auto var = ref_stack.pop();
                 all_words.get(var).print();
-                std::cout << std::endl;
+                //std::cout << std::endl;
                 counter++;
             }
                 break;
