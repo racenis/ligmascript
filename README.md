@@ -6,11 +6,17 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 
 ### To-do list
 
-- array access stuff
-	- put into array
-	- extract from array
-- copy into memory
-- some kind of a pre-processor?
+- fix compiler making an error 
+	- "list not list appendable" when a block (should be no error)
+- add `==` operator
+	- this operator would check if two references are the same, not their contents
+	- also make `=` operator work on strings
+- make values possible to be read-only
+	- this would prevent accidentaly modifying literals with the `move` keyword
+- use the same true/false value for all comparisons, instead of creating a new one every time
+	- makes the intepreter go vroom vroom by yeeting unnecessary memory allocations
+
+#### Stuff that will take some longer time
 - namespaces
 - a small standard library
 

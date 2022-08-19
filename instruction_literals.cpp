@@ -156,6 +156,26 @@ const char* ligma::Exception::exceptstr() const {
             return "Invalid type assignment";
         case LIST_UNAPPENDABLE:
             return "Value not appendable to a list";
+        case LIST_DATA_ASSIGN_NOT_LIST:
+            return"Assigning data to not a list";
+        case LIST_NEXT_ASSIGN_NOT_LIST:
+            return "Assigning next to not a list";
+        case VECTOR_EXTRACT_UNSUPPORTED_TYPE:
+            return "Extracting from a vector of unsupported type";
+        case VECTOR_EXTRACT_INVALID_INDEX:
+            return "Extracting form a vector with an invalid index";
+        case VECTOR_INSERT_UNSUPPORTED_TYPE:
+            return "Inserting into a vector of unsupported type";
+        case VECTOR_INSERT_INVALID_INDEX:
+            return "Inserting into a vector with an invalid index";
+        case VECTOR_INSERT_VECTOR:
+            return "Inserting into a vector another vector";
+        case MOVE_VECTOR_DIFFERENT_SIZES:
+            return "Moving into a vector of a different size";
+        case MOVE_STRING_INSUFFICIENT_SIZE:
+            return "Moving into a string not enough space";
+        case MOVE_INVALID_TYPE:
+            return "Moving into an invalid type";
     }
 }
 

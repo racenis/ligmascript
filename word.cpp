@@ -109,6 +109,9 @@ namespace ligma {
         size = other.size;
 
         if (other.type_is_numeric() && other.value) {
+            // if the other things value is a no_delete, then
+            // we don't have to memcpy, we can just use the
+            // same pointer and it's going to be ok
             value = ::operator new(other.type_size() * other.size);
             mempcpy(value, other.value, other.type_size() * other.size);
             no_delete = false;
@@ -160,11 +163,9 @@ namespace ligma {
 
     void Word::move_into (Word& other) {
         if (type_is_numeric() && size != other.size) {
-            // TODO: throw exception
-            abort();
+            throw Exception(Exception::MOVE_VECTOR_DIFFERENT_SIZES);
         } else if (type == STRING && size < strlen((char*)other.value)+1) {
-            // TODO: throw exception
-            abort();
+            throw Exception(Exception::MOVE_STRING_INSUFFICIENT_SIZE);
         }
 
         if (type_is_numeric()) {
@@ -203,8 +204,7 @@ namespace ligma {
         } else if (type == STRING) {
             strcpy((char*)value, (char*)other.value);
         } else {
-            // TODO: throw exception
-            abort();
+            throw Exception(Exception::MOVE_INVALID_TYPE);
         }
     }
 

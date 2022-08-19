@@ -154,10 +154,8 @@ try {
             case JUMPIFNOT: {
                 auto &condition = all_words.get(ref_stack.pop());
 
-                // TODO: figure out if vectors can be evaluated as jumpys
-                //if (condition.size != 1) throw Exception(Exception::INVALID_CONDITION);
                 if (param == (param_t) -1) throw Exception(Exception::INVALID_JUMP_ADDRESS);
-                if (!condition.value_as_logic()/*!condition.value_as_uint(0)*/) {
+                if (!condition.value_as_logic()) {
                     counter = param;
                 } else {
                     counter += 3;
@@ -169,8 +167,7 @@ try {
                 auto &right = all_words.get(right_n);
                 auto &left = all_words.get(ref_stack.pop());
 
-                // maybe should add a 'is referenced by word-name' bool
-                // instead of no_delete. then can check directly
+                // TODO: when read_only stuff is added, then you should always use copy_from for them
                 if (right.references == 0 && !right.is_named) {
                     left.cannibalize(right);
                 } else if (right.type == Word::BYTECODE) {
@@ -178,8 +175,6 @@ try {
                 } else {
                     left.make_reference_to(right_n);
                 }
-
-                //left.copy_from(right);
 
                 counter++;
             }
@@ -226,9 +221,9 @@ try {
                     });
                     all_words.get(n_list).car = right;
                     all_words.get(n_list).cdr = UNINIT_REF;
-                    auto appdbl = left;
-                    while (all_words.get(appdbl).cdr != UNINIT_REF) appdbl = all_words.get(appdbl).cdr;
-                    all_words.get(appdbl).cdr = n_list;
+                    auto appndbl = left;
+                    while (all_words.get(appndbl).cdr != UNINIT_REF) appndbl = all_words.get(appndbl).cdr;
+                    all_words.get(appndbl).cdr = n_list;
                 }
 
                 all_words.get(right).references++;
@@ -238,17 +233,25 @@ try {
             }
                 break;
             case LISTDATA: {
-                auto right = ref_stack.pop();
-                auto &right_w = all_words.get(right);
+                auto &word = all_words.get(ref_stack.pop());
 
-                ref_stack.push(right_w.car);
+                if (word.type_is_reference()) {
+                    ref_stack.push(word.car);
+                } else {
+                    ref_stack.push(UNINIT_REF);
+                }
+
                 counter++;
             } break;
             case LISTNEXT: {
-                auto right = ref_stack.pop();
-                auto &right_w = all_words.get(right);
+                auto &word = all_words.get(ref_stack.pop());
 
-                ref_stack.push(right_w.cdr);
+                if (word.type_is_reference()) {
+                    ref_stack.push(word.cdr);
+                } else {
+                    ref_stack.push(UNINIT_REF);
+                }
+
                 counter++;
             } break;
             case LISTDATAASSIGN: {
@@ -257,6 +260,7 @@ try {
                 auto &right_w = all_words.get(right);
                 auto &left_w = all_words.get(left);
 
+                if (!left_w.type_is_reference()) throw Exception(Exception::LIST_DATA_ASSIGN_NOT_LIST);
                 if (left_w.car != UNINIT_REF) all_words.get(left_w.car).references--;
                 left_w.car = right;
                 right_w.references++;
@@ -268,6 +272,7 @@ try {
                 auto &right_w = all_words.get(right);
                 auto &left_w = all_words.get(left);
 
+                if (!left_w.type_is_reference()) throw Exception(Exception::LIST_NEXT_ASSIGN_NOT_LIST);
                 if (left_w.cdr != UNINIT_REF) all_words.get(left_w.cdr).references--;
                 left_w.cdr = right;
                 right_w.references++;
@@ -277,18 +282,13 @@ try {
                 auto &right = all_words.get(ref_stack.pop());
                 auto &left = all_words.get(ref_stack.pop());
 
-                // TODO: add a check -- make sure that 'left' is a vector extractable
-                // TODO: add a check -- make sure that 'right' also isn't a vector
-
                 if (left.type != Word::FLOAT32 && left.type != Word::INT64 && left.type != Word::UINT64) {
-                    // TODO: throw error
-                    abort();
+                    throw Exception(Exception::VECTOR_EXTRACT_UNSUPPORTED_TYPE);
                 }
 
                 auto extract_index = right.value_as_int(0);
                 if (extract_index < 0 || extract_index >= left.size) {
-                    // TODO: throw error
-                    abort();
+                    throw Exception(Exception::VECTOR_EXTRACT_INVALID_INDEX);
                 }
 
                 void* new_value;
@@ -321,18 +321,17 @@ try {
                 auto &middle = all_words.get(ref_stack.pop());
                 auto &left = all_words.get(ref_stack.pop());
 
-                // TODO: add a check -- make sure that 'middle' isn't a vector
-                // TODO: add a check -- make sure that 'right' also isn't a vector
+                if (right.size != 1){
+                    throw Exception(Exception::VECTOR_INSERT_VECTOR);
+                }
 
                 if (left.type != Word::FLOAT32 && left.type != Word::INT64 && left.type != Word::UINT64) {
-                    // TODO: throw error
-                    abort();
+                    throw Exception(Exception::VECTOR_INSERT_UNSUPPORTED_TYPE);
                 }
 
                 auto insert_index = right.value_as_int(0);
                 if (insert_index < 0 || insert_index >= left.size) {
-                    // TODO: throw error
-                    abort();
+                    throw Exception(Exception::VECTOR_INSERT_INVALID_INDEX);
                 }
 
                 auto new_word_ref = all_words.add(Word{});
@@ -489,14 +488,12 @@ try {
             case AND: {
                 auto &right = all_words.get(ref_stack.pop());
                 auto &left = all_words.get(ref_stack.pop());
-                //if (right.size != 1 || left.size != 1) throw Exception(Exception::INVALID_CONDITION);
                 logic_value(*this, right.value_as_logic() && left.value_as_logic());
                 counter++;
             } break;
             case OR: {
                 auto &right = all_words.get(ref_stack.pop());
                 auto &left = all_words.get(ref_stack.pop());
-                //if (right.size != 1 || left.size != 1) throw Exception(Exception::INVALID_CONDITION);
                 logic_value(*this, right.value_as_logic() || left.value_as_logic());
                 counter++;
             } break;
@@ -559,7 +556,6 @@ try {
             case PRINT: {
                 auto var = ref_stack.pop();
                 all_words.get(var).print();
-                //std::cout << std::endl;
                 counter++;
             }
                 break;
