@@ -45,10 +45,10 @@ const char* const ligma::bytecode_instruction_str[] = {
         "LISTDATA",
         "LISTNEXTASSIGN",
         "LISTDATAASSIGN",
-        "S44",
-        "S45",
-        "S46",
-        "S47",
+        "VECTOREXTRACT",
+        "VECTORINSERT",
+        "MOVE",
+        "COPY",
         "S48",
         "S49",
         "S50",
@@ -156,5 +156,69 @@ const char* ligma::Exception::exceptstr() const {
             return "Invalid type assignment";
         case LIST_UNAPPENDABLE:
             return "Value not appendable to a list";
+    }
+}
+
+const char* ligma::Word::type_as_str() const {
+    switch (type) {
+        case UNDEFINED:
+            return "UNDEFINED";
+        case BYTECODE:
+            return "BYTECODE";
+        case LIST:
+            return "LIST";
+        case REFERENCE:
+            return "REFERENCE";
+        case STRING:
+            return "STRING";
+        case INT64:
+            return "INT64";
+        case INT32:
+            return "INT32";
+        case INT16:
+            return "INT16";
+        case INT8:
+            return "INT8";
+        case UINT64:
+            return "UINT64";
+        case UINT32:
+            return "UINT32";
+        case UINT16:
+            return "UINT16";
+        case UINT8:
+            return "UINT8";
+        case FLOAT64:
+            return "FLOAT64";
+        case FLOAT32:
+            return "FLOAT32";
+        default:
+            return "UNKNOWN TYPE";
+    }
+}
+
+size_t ligma::Word::type_size() const {
+    switch (type) {
+        case INT64:
+            return sizeof(int64_t);
+        case INT32:
+            return sizeof(int32_t);
+        case INT16:
+            return sizeof(int16_t);
+        case INT8:
+            return sizeof(int8_t);
+        case UINT64:
+            return sizeof(uint64_t);
+        case UINT32:
+            return sizeof(uint32_t);
+        case UINT16:
+            return sizeof(uint16_t);
+        case UINT8:
+            return sizeof(uint8_t);
+        case FLOAT64:
+            return sizeof(double);
+        case FLOAT32:
+            return sizeof(float);
+        default:
+            return 0;
     }
 }

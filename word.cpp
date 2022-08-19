@@ -3,21 +3,30 @@
 namespace ligma {
     void Word::print_info() {
         std::cout << "Type:\t" << type_as_str() << std::endl;
-        std::cout << "Value:\t"; print(); std::cout << std::endl;
+        std::cout << "Value:\t"; print(); std::cout << std::endl; // TODO: for strings don't format, just print directly
         std::cout << "Size:\t" << size << std::endl;
         std::cout << "Refs:\t" << references << std::endl;
+        std::cout << "Flags:\t";
+        if (!no_delete && !no_collect && !is_named) {
+            std::cout << "none" << std::endl;
+        } else {
+            if (no_delete) std::cout << "no_delete ";
+            if (no_collect) std::cout << "no_collect ";
+            if (is_named) std::cout << "is_named ";
+            std::cout << std::endl;
+        }
     }
     void Word::print() {
         if (type_is_numeric() && size > 1) std::cout << "(";
         switch (type) {
             case UNDEFINED:
-                std::cout << "Undefined value" << std::endl;
+                std::cout << "nil";
                 break;
             case BYTECODE:
                 std::cout << "Bytecode " << ((Bytecode*)value)->name << " offset " << size << std::endl;
                 break;
+            case REFERENCE:
             case LIST:
-                // TODO: make this betterer
                 if (value) {
                     std::cout << "[";
                     if (car != UNINIT_REF) {
@@ -93,76 +102,9 @@ namespace ligma {
         if (type_is_numeric() && size > 1) std::cout << ")";
     }
 
-    // move to literals?
-    const char* Word::type_as_str() const {
-        switch (type) {
-            case UNDEFINED:
-                return "UNDEFINED";
-            case BYTECODE:
-                return "BYTECODE";
-            case LIST:
-                return "LIST";
-            case REFERENCE:
-                return "REFERENCE";
-            case STRING:
-                return "STRING";
-            case INT64:
-                return "INT64";
-            case INT32:
-                return "INT32";
-            case INT16:
-                return "INT16";
-            case INT8:
-                return "INT8";
-            case UINT64:
-                return "UINT64";
-            case UINT32:
-                return "UINT32";
-            case UINT16:
-                return "UINT16";
-            case UINT8:
-                return "UINT8";
-            case FLOAT64:
-                return "FLOAT64";
-            case FLOAT32:
-                return "FLOAT32";
-            default:
-                return "UNKNOWN TYPE";
-        }
-        // TODO: add methods for type conversions
-    }
-
-    size_t Word::type_size() const {
-        switch (type) {
-            case INT64:
-                return 8;
-            case INT32:
-                return 4;
-            case INT16:
-                return 2;
-            case INT8:
-                return 1;
-            case UINT64:
-                return 8;
-            case UINT32:
-                return 4;
-            case UINT16:
-                return 2;
-            case UINT8:
-                return 1;
-            case FLOAT64:
-                return 8;
-            case FLOAT32:
-                return 4;
-            default:
-                return 0;
-        }
-    }
-
     void Word::copy_from (Word& other) {
         clean();
 
-        // TODO: add stuff from other types
         type = other.type;
         size = other.size;
 
@@ -173,17 +115,20 @@ namespace ligma {
         } else if (other.type == Word::BYTECODE) {
             value = other.value;
             no_delete = true;
-        } else if (other.type == Word::LIST) {
+        } else if (other.type_is_reference()) {
             if(other.cdr != UNINIT_REF) all_words.get(other.cdr).references++;
             if(other.car != UNINIT_REF) all_words.get(other.car).references++;
             car = other.car;
             cdr = other.cdr;
+
+            // TODO: add a string copy in here
         } else {
             throw Exception(Exception::INVALID_TYPE_ASSIGNMENT);
         }
     }
 
     void Word::cannibalize (Word& other) {
+        clean();
         type = other.type;
         size = other.size;
         no_delete = other.no_delete;
@@ -198,16 +143,69 @@ namespace ligma {
         type = REFERENCE;
         cdr = UNINIT_REF;
         car = word;
+        all_words.get(word).references++;
     }
 
     void Word::clean () {
         if (type_is_reference()) {
             if (car != UNINIT_REF) all_words.get(car).references--;
             if (cdr != UNINIT_REF) all_words.get(cdr).references--;
-        } else if (!no_delete && value) {
+        } else if (type != UNDEFINED && type != BYTECODE && !no_delete && value) {
             ::operator delete (value);
         }
         value = nullptr;
+        no_delete = false;
+        size = 0;
+    }
+
+    void Word::move_into (Word& other) {
+        if (type_is_numeric() && size != other.size) {
+            // TODO: throw exception
+            abort();
+        } else if (type == STRING && size < strlen((char*)other.value)+1) {
+            // TODO: throw exception
+            abort();
+        }
+
+        if (type_is_numeric()) {
+            switch (type) {
+                case FLOAT32:
+                    for (size_t i = 0; i < size; i++) ((float*)value)[i] = other.value_as_float(i);
+                    break;
+                case FLOAT64:
+                    for (size_t i = 0; i < size; i++) ((double*)value)[i] = other.value_as_float(i);
+                    break;
+                case INT64:
+                    for (size_t i = 0; i < size; i++) ((int64_t*)value)[i] = other.value_as_int(i);
+                    break;
+                case INT32:
+                    for (size_t i = 0; i < size; i++) ((int32_t*)value)[i] = other.value_as_int(i);
+                    break;
+                case INT16:
+                    for (size_t i = 0; i < size; i++) ((int16_t*)value)[i] = other.value_as_int(i);
+                    break;
+                case INT8:
+                    for (size_t i = 0; i < size; i++) ((int8_t*)value)[i] = other.value_as_int(i);
+                    break;
+                case UINT64:
+                    for (size_t i = 0; i < size; i++) ((uint64_t*)value)[i] = other.value_as_uint(i);
+                    break;
+                case UINT32:
+                    for (size_t i = 0; i < size; i++) ((uint32_t*)value)[i] = other.value_as_uint(i);
+                    break;
+                case UINT16:
+                    for (size_t i = 0; i < size; i++) ((uint16_t*)value)[i] = other.value_as_uint(i);
+                    break;
+                case UINT8:
+                    for (size_t i = 0; i < size; i++) ((uint8_t*)value)[i] = other.value_as_uint(i);
+                    break;
+            }
+        } else if (type == STRING) {
+            strcpy((char*)value, (char*)other.value);
+        } else {
+            // TODO: throw exception
+            abort();
+        }
     }
 
     uint8_t Word::value_as_logic () {

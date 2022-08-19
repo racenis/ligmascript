@@ -2,9 +2,6 @@
 #include "ligma.h"
 
 namespace ligma {
-    void intp_comp_lessthan (InterpreterState& state);
-    void intp_comp_greaterthan (InterpreterState& state);
-
     void logic_value (InterpreterState& state, const uint8_t& value) {
         state.ref_stack.push(all_words.add(Word{
                 Word::UINT8,
@@ -36,24 +33,10 @@ namespace ligma {
         }
 
         comp_false:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(0),
-                1,
-                0,
-                false,
-                false
-        }));
+        logic_value(state, false);
         return;
         comp_true:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(1),
-                1,
-                0,
-                false,
-                false
-        }));
+        logic_value(state, true);
     }
 
     template <auto float_op, auto int_op, auto uint_op>
@@ -124,7 +107,7 @@ try {
         switch (instr) {
             case EXECUTEWORD: {
                 auto ref_n = ref_stack.pop();
-                auto ref = all_words.get(ref_n);
+                auto &ref = all_words.get(ref_n);
 
                 if (ref.type == Word::BYTECODE) {
                     stack.push(StackElement{(Bytecode *) ref.value, (param_t) ref.size});
@@ -135,20 +118,10 @@ try {
                     } else {
                         ref_stack.push(ref.car);
                     }
-
-
-                    /*else if (ref.type != Word::UNDEFINED) {
-                    // wtf why is this here
-                    auto word = all_words.add(Word());
-                    all_words.get(word).copy_from(ref);
-                    ref_stack.push(word);
-                }*/
-
                 } else {
                     ref_stack.push(ref_n);
                 }
 
-                //counter += 3;
                 counter++;
             }
                 break;
@@ -198,7 +171,7 @@ try {
 
                 // maybe should add a 'is referenced by word-name' bool
                 // instead of no_delete. then can check directly
-                if (right.references == 0 && !right.no_delete) {
+                if (right.references == 0 && !right.is_named) {
                     left.cannibalize(right);
                 } else if (right.type == Word::BYTECODE) {
                     left.copy_from(right);
@@ -298,6 +271,104 @@ try {
                 if (left_w.cdr != UNINIT_REF) all_words.get(left_w.cdr).references--;
                 left_w.cdr = right;
                 right_w.references++;
+                counter++;
+            } break;
+            case VECTOREXTRACT: {
+                auto &right = all_words.get(ref_stack.pop());
+                auto &left = all_words.get(ref_stack.pop());
+
+                // TODO: add a check -- make sure that 'left' is a vector extractable
+                // TODO: add a check -- make sure that 'right' also isn't a vector
+
+                if (left.type != Word::FLOAT32 && left.type != Word::INT64 && left.type != Word::UINT64) {
+                    // TODO: throw error
+                    abort();
+                }
+
+                auto extract_index = right.value_as_int(0);
+                if (extract_index < 0 || extract_index >= left.size) {
+                    // TODO: throw error
+                    abort();
+                }
+
+                void* new_value;
+                Word::Type new_word_type;
+
+                if (left.type_is_float()) {
+                    new_word_type = Word::FLOAT32;
+                    new_value = new float(left.value_as_float(extract_index));
+                } else if (left.type_is_int()) {
+                    new_word_type = Word::INT64;
+                    new_value = new int64_t(left.value_as_int(extract_index));
+                } else if (left.type_is_uint()) {
+                    new_word_type = Word::UINT64;
+                    new_value = new uint64_t(left.value_as_uint(extract_index));
+                }
+
+                ref_stack.push(all_words.add(Word{
+                        new_word_type,
+                        new_value,
+                        1,
+                        0,
+                        false,
+                        false
+                }));
+
+                counter++;
+            } break;
+            case VECTORINSERT: {
+                auto &right = all_words.get(ref_stack.pop());
+                auto &middle = all_words.get(ref_stack.pop());
+                auto &left = all_words.get(ref_stack.pop());
+
+                // TODO: add a check -- make sure that 'middle' isn't a vector
+                // TODO: add a check -- make sure that 'right' also isn't a vector
+
+                if (left.type != Word::FLOAT32 && left.type != Word::INT64 && left.type != Word::UINT64) {
+                    // TODO: throw error
+                    abort();
+                }
+
+                auto insert_index = right.value_as_int(0);
+                if (insert_index < 0 || insert_index >= left.size) {
+                    // TODO: throw error
+                    abort();
+                }
+
+                auto new_word_ref = all_words.add(Word{});
+                auto& new_word = all_words.get(new_word_ref);
+                new_word.copy_from(left);
+                switch(left.type){
+                    // maybe factor this out as a 'Word' class method?
+                    case Word::FLOAT32:
+                        ((float*)new_word.value)[insert_index] = middle.value_as_float(0);
+                    break;
+                    case Word::INT64:
+                        ((int64_t*)new_word.value)[insert_index] = middle.value_as_int(0);
+                        break;
+                    case Word::UINT64:
+                        ((uint64_t*)new_word.value)[insert_index] = middle.value_as_uint(0);
+                        break;
+                }
+
+                ref_stack.push(new_word_ref);
+                counter++;
+            } break;
+            case MOVE: {
+                auto &right = all_words.get(ref_stack.pop());
+                auto &left = all_words.get(ref_stack.pop());
+
+                left.move_into(right);
+                counter++;
+            } break;
+            case COPY: {
+                auto &word = all_words.get(ref_stack.pop());
+                auto new_word_ref = all_words.add(Word{});
+                auto &new_word = all_words.get(new_word_ref);
+
+                new_word.copy_from(word);
+
+                ref_stack.push(new_word_ref);
                 counter++;
             } break;
             case PUSHFLOAT32: {
@@ -513,104 +584,16 @@ try {
         }
     }
 
-
-
-
-
-
-
-    void intp_comp_lessthan (InterpreterState& state) {
-        auto& right = all_words.get(state.ref_stack.pop());
-        auto& left = all_words.get(state.ref_stack.pop());
-
-        if (left.size != 1 || right.size != 1) {
-            throw Exception(Exception::INCOMPATIBLE_COMPARISON_SIZES);
-        }
-
-        if (left.type_is_float() || left.type_is_float()) {
-            if (left.value_as_float(0) < right.value_as_float(0)) goto comp_true; else goto comp_false;
-        } else if (left.type_is_int() || left.type_is_int()) {
-            if (left.value_as_int(0) < right.value_as_int(0)) goto comp_true; else goto comp_false;
-        } else if (left.type_is_uint() || left.type_is_uint()) {
-            if (left.value_as_uint(0) < right.value_as_uint(0)) goto comp_true; else goto comp_false;
-        } else {
-            throw Exception(Exception::INCOMPATIBLE_COMPARISON_TYPES);
-        }
-
-        comp_false:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(0),
-                1,
-                0,
-                false,
-                false
-        }));
-        return;
-        comp_true:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(1),
-                1,
-                0,
-                false,
-                false
-        }));
-    }
-
-    void intp_comp_greaterthan (InterpreterState& state) {
-        auto& right = all_words.get(state.ref_stack.pop());
-        auto& left = all_words.get(state.ref_stack.pop());
-
-        if (left.size != 1 || right.size != 1) {
-            throw Exception(Exception::INCOMPATIBLE_COMPARISON_SIZES);
-        }
-
-        if (left.type_is_float() || left.type_is_float()) {
-            if (left.value_as_float(0) > right.value_as_float(0)) goto comp_true; else goto comp_false;
-        } else if (left.type_is_int() || left.type_is_int()) {
-            if (left.value_as_int(0) > right.value_as_int(0)) goto comp_true; else goto comp_false;
-        } else if (left.type_is_uint() || left.type_is_uint()) {
-            if (left.value_as_uint(0) > right.value_as_uint(0)) goto comp_true; else goto comp_false;
-        } else {
-            throw Exception(Exception::INCOMPATIBLE_COMPARISON_TYPES);
-        }
-
-        comp_false:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(0),
-                1,
-                0,
-                false,
-                false
-        }));
-        return;
-        comp_true:
-        state.ref_stack.push(all_words.add(Word{
-                Word::UINT8,
-                new uint8_t(1),
-                1,
-                0,
-                false,
-                false
-        }));
-    }
-
-
-
-
-
-
     void collect_garbage () {
         for (param_t i = 0; i < all_words.size(); i++) {
             if (all_words.is_valid(i)) {
-                all_words.get(i).print_info();
-                std::cout << all_words.get(i).references << "refs, ";
-                if(all_words.get(i).no_collect) std::cout << "nocollect" << std::endl << std::endl;
-                    else std::cout << "collect" << std::endl << std::endl;
+                auto& word = all_words.get(i);
+                bool collect = word.references == 0 && !word.no_collect && !word.is_named;
 
-                if(!all_words.get(i).no_collect && all_words.get(i).references == 0) {
+                std::cout << (collect ? "[COLLECT] " : "[  NOT  ] ") << "Ref num:\t" << i << " Value: \t";
+                word.print(); std::cout << std::endl;
+
+                if (collect) {
                     all_words.get(i).clean();
                     all_words.remove(i);
                 }

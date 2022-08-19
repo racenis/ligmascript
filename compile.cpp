@@ -17,6 +17,7 @@ namespace ligma {
                 0,
                 0,
                 true,
+                true,
                 true
             });
             word_names[name] = id;
@@ -240,6 +241,14 @@ namespace ligma {
             append(LISTDATAASSIGN);
         } else if (strcmp(token, "setcdr") == 0) {
             append(LISTNEXTASSIGN);
+        } else if (strcmp(token, ">>") == 0) {
+            append(VECTOREXTRACT);
+        } else if (strcmp(token, "<<") == 0) {
+            append(VECTORINSERT);
+        } else if (strcmp(token, "move") == 0) {
+            append(MOVE);
+        } else if (strcmp(token, "copy") == 0) {
+            append(COPY);
         } else if (strcmp(token, ".s") == 0) {
             append(PRINTSTACK);
         } else if (strcmp(token, "if") == 0) {

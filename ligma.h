@@ -166,10 +166,10 @@ namespace ligma {
         LISTDATA,
         LISTNEXTASSIGN,
         LISTDATAASSIGN,
-        S44,
-        S45,
-        S46,
-        S47,
+        VECTOREXTRACT,
+        VECTORINSERT,
+        MOVE,
+        COPY,
         S48,
         S49,
         S50,
@@ -267,6 +267,7 @@ namespace ligma {
         size_t references = 0;
         bool no_delete = true;
         bool no_collect = true;
+        bool is_named = false;
 
         void print();
         void print_info();
@@ -287,50 +288,13 @@ namespace ligma {
         void clean ();
         void copy_from (Word& other);
         void cannibalize (Word& other);
+        void move_into (Word& other);
         void make_reference_to (param_t word);
 
     };
 
     /// pool where all the words are stored
     extern Pool<Word, 500> all_words;
-
-    /*struct List {
-        struct ListElement {
-            Word* word = nullptr;
-            ListElement* next = nullptr;
-        };
-
-        ListElement* first = nullptr;
-        ListElement* last = nullptr;
-
-        void append (param_t ref) {
-            auto& word = all_words.get(ref);
-            auto* element = new ListElement { &word };
-            word.references++;
-
-            if (last) {
-                last->next = element;
-                last = element;
-            } else {
-                first = element;
-                last = element;
-            }
-        }
-
-        void clean () {
-            auto* elem_f = first;
-
-            while (elem_f) {
-                auto* elem_n = elem_f->next;
-                elem_f->word->references--;
-                delete elem_f;
-                elem_f = elem_n;
-            }
-
-            first = nullptr;
-            last = nullptr;
-        }
-    };*/
 
     /// special stack for word references that updates the referenced word's reference count
     template <size_t maxsize>
