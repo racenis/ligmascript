@@ -1,10 +1,12 @@
+;random code for testing
+
 ;" i need my begonis! " print
 ;isit (lambda 100 > if ("true" print) else ("false" print)) set
 
-;benis printer
-;foreach (lambda over if (over car over execute) else (return) over cdr over recurse) set ;will trash
-;benis (list (list `jānis 420) (list `mpriekšn 4) (list `regejs 14)) set
-;printer (lambda dup car print `:%t print cdr car isit `%n print) set
+
+;TODO: find out why this trashes the stack. would be good to put in the standard library
+;foreach (lambda over if (over car over execute) else (return) over cdr over recurse) set ;figure o
+
 
 ; 2 3
 

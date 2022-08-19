@@ -3,7 +3,7 @@
 #include "ligma.h"
 #include "ligma_wrapper.h"
 
-/*
+
 int main() {
     // here's some ligmascript code
     std::string ligmascript_code = "begonis (lambda 0 call) set ";
@@ -52,8 +52,9 @@ int main() {
 
     return 0;
 }
-*/
 
+/*
+// stuff for testing
 int main() {
 
     ligma::LoadFile("examples/lines.ligma");
@@ -65,3 +66,4 @@ int main() {
 
     return 0;
 }
+*/
