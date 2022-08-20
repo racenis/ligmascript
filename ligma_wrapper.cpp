@@ -28,6 +28,54 @@ namespace ligma {
         return find_word(name);
     }
 
+    void SetValue (WordType type, size_t size, bool read_only, param_t word, void* address) {
+        auto& w = all_words.get(word);
+        if (address == nullptr) {
+            w.clean();
+        } else {
+            w.size = size;
+            w.value = address;
+            w.no_delete = true;
+            w.no_collect = true;
+
+            switch (type) {
+                case STRING:
+                    w.type = Word::STRING;
+                    break;
+                case FLOAT32:
+                    w.type = Word::FLOAT32;
+                    break;
+                case FLOAT64:
+                    w.type = Word::FLOAT64;
+                    break;
+                case INT8:
+                    w.type = Word::INT8;
+                    break;
+                case INT16:
+                    w.type = Word::INT16;
+                    break;
+                case INT32:
+                    w.type = Word::INT32;
+                    break;
+                case INT64:
+                    w.type = Word::INT64;
+                    break;
+                case UINT8:
+                    w.type = Word::UINT8;
+                    break;
+                case UINT16:
+                    w.type = Word::UINT16;
+                    break;
+                case UINT32:
+                    w.type = Word::UINT32;
+                    break;
+                case UINT64:
+                    w.type = Word::UINT64;
+                    break;
+            }
+        }
+    }
+
     void Interpret (param_t word) {
         auto& w = all_words.get(word);
         if (w.type == Word::BYTECODE) {

@@ -1,5 +1,3 @@
-# LIGMAScript
-
 ![LIGMAScript logo](/docs/ligma_logo_spacious.gif)
 
 Very good programming language. The name stands for **LI**st **G**eneral **M**anipulation and **A**rithmetic **Script**. You can read more about it on the [github.io page](https://racenis.github.io/ligmascript/). 
