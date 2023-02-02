@@ -22,11 +22,17 @@
 			</center>
 
 			<p>
-				<b>LIGMAScript</b> (pronounced ligmascript) is a <i>blazingly</i> fast structured imperative non-functional non-object-oriented procedural functional general purpouse compiled byte-code interpreted programming language for programming programs.
+				<b>LIGMAScript</b> (pronounced ligmascript) is a <i>blazingly</i> 
+				fast, structured, imperative, procedural, non-object-oriented, 
+				non-functional functional, general purpouse, compiled, byte-code 
+				interpreted digital computer programming language for programming 
+				digital computers.
 			</p>
 
 			<p>
-				It's currently being worked on, and when finished it will be the best programming language ever.
+				It's currently being worked on, and when finished it will be the 
+				best programming language ever.
+				<a href="#note-best-lang"><sup>[1]</sup></a>
 			</p>
 
 			<table width="400" align="center" border="1" bgcolor="black" background="background_sparkle.gif">
@@ -36,58 +42,84 @@
 					<td><center><font color="white">Is it ready yet?</font></center></td>
 				</tr>
 				<tr>
-					<td><center><font color="white" size="6">0.0.0</font></center></td>
-					<td><center><font color="white" size="6">No.</font></center></td>
+					<td><center><font color="white" size="6">0.0.1</font></center></td>
+					<td><center><font color="white" size="6">Kinda.</font></center></td>
 				</tr>
+				<tr><td colspan="2"><center><a target="_blank" border="0" href="https://github.com/racenis/ligmascript"><img src="download_button.gif"/></a></center></td></tr>
 			</table>
 
 			<h3>What's a LIGMAScript?</h3>
 			<p>
-				LIGMAScript stands for <!-- <b>L</b>ist <b>I</b>nterpreted --> <b>LI</b>st <b>G</b>eneral <b>M</b>anipulation and <b>A</b>rithmetic <b>Script</b>.
+				<b>LIGMAScript</b> stands for <b>L</b>ist <b>I</b>nterpreted 
+				<!-- <b>LI</b>st --> <b>G</b>eneral <b>M</b>anipulation and 
+				<b>A</b>rithmetic <b>Script</b>.
 			</p>
 
 			<h3>Why LIMGAScript</h3>
-			<h4>No Types</h4>
+			<h4>Dynamical types</h4>
 			<p>
-				Declaring types for variables is super-annoying, so why bother? The LIGMAScript is designed without any types for this reason. This also means that you don't
-				have to write a subroutine for each type or use stinky hacks like 'the generics' as they are called in other languages. Just write one subroutine, and it will
-				work with any values that it may touch.
+				Declaring types for variables is super-annoying, so why bother? 
+				The LIGMAScript is designed without any type declarations for 
+				this reason. 
+				This also means that you don't have to write a subroutine for 
+				each type or use stinky hacks like 'the generics' as they are 
+				called in other languages. Just write one subroutine, and it 
+				will work with any values that it may touch.
 			</p>
 			<h4>No Functions</h4>
 			<p>
-				It's really hard to come up for names for functions and then you need to pass parameters, and then decide what value the function is going to return and so on and so forth.
-				For this reason the LIGMAScript language does not have any functions.
+				It's really hard to come up for names for functions and then you 
+				need to pass parameters, and then decide what value the function 
+				is going to return and so on and so forth. For this reason the 
+				LIGMAScript language does not have any functions.
+				<a href="#note-no-functions"><sup>[2]</sup></a>
 			</p>
 			<h4>Performance</h4>
 			<p>
-				LIGMAScript is a compiled, whych automaticcally means that it is also very fast, but compiling straight to machine-code compromises the squishiness of the langauge, so
-				LIGMAScript is compiled to bytecode and then intepreted by the LIGMAScript Virtual Machine (LIGMASVM for short).
+				LIGMAScript is a compiled, whych automaticcally means that it is 
+				also very fast, but compiling straight to machine-code 
+				compromises the squishiness of the langauge, so LIGMAScript is 
+				compiled to bytecode and then intepreted by the LIGMAScript 
+				Virtual Machine (LIGMASVM for short).
 			</p>
 			<h4>Reliabilty</h4>
 			<p>
-				LIGMAScript Virtual Machine is designed in such a way that it doesn't crash (and when it does it's always intentional). The VM also prevents memory leaks, by collecting the garbage, but the garbage collection is optional and if you want you can leak some memory.
+				LIGMAScript Virtual Machine is designed in such a way that it 
+				doesn't crash (and when it does it's always intentional). 
+				The VM also prevents memory leaks, by collecting the garbage, 
+				but the garbage collection is optional and if you want you can 
+				leak some memory.
+			</p>
+			<p>
+				LIGMAScript memory model consists of one very large array. This 
+				ensures zero memory fragmentation. Supports up to 65000
+				different values (you will not need more).
 			</p>
 
 			<h3>Syntax</h3>
 			<p>
-				The most notable syntactical feature of the language is that it uses lithuanian notation. This means that two compute the sum of two two's instead of writing <code>2 + 2</code>, as in other languages, you'd write <code>2 2 +</code>.
-			</p>
-			<p>
-				The language also doesn't use squirly bracelets (like the <code>{</code> and also the <code>}</code>) for blocks.
+				The most notable syntactical feature of the language is that it 
+				uses lithuanian notation. This means that two compute the sum of 
+				two two's instead of writing <code>2 + 2</code>, as in other 
+				languages, you'd write <code>2 2 +</code>.
+				The language also doesn't use squirly bracelets (like the 
+				<code>{</code> and also the <code>}</code>) for blocks.
+				There are only 400 <a href="#note-keyword-count"><sup>[3]</sup></a>
+				keywords in LIGMAScript. These can be learned in a single day.
 			</p>
 
 			<h4>Hello World</h4>
 			<code>
-				"hellow wworld uwu ;33" print
+				"hellow wworld" . cr
 			</code>
 
 			<h4>Is Impressive</h4>
 			<code>
 				is-impressive (lambda<br/>
 				&emsp;&emsp;100 > if (<br/>
-				&emsp;&emsp;&emsp;&emsp;"yes, it's an impressive" print<br/>
+				&emsp;&emsp;&emsp;&emsp;"yes, it's an impressive" . cr<br/>
 				&emsp;&emsp;) else (<br/>
-				&emsp;&emsp;&emsp;&emsp;"no, it's not impressive at all" print<br/>
+				&emsp;&emsp;&emsp;&emsp;"no, it's not impressive at all" . cr<br/>
 				&emsp;&emsp;)<br/>
 				) set<br/><br/>
 				; Since the language doesn't have any standard way to get command line input,<br/>
@@ -97,41 +129,35 @@
 			</code>
 
 			<br/><br/>
-			<h3>Stuff that still isn't done</h3>
+
+			<h3>How to achieve the LIGMAScript</h3>
 			<p>
-				There are still some things that need to be done in the LIGMAScript:
+				There's is still no very large release, but it's possible to 
+				access the source code of the LIGMAScript on the 
+				<a target="_blank" href="https://github.com/racenis/ligmascript">github.com</a>.
 			</p>
-				<ul>
-					<li>Finish the LIGMAScript language.
-						<ul>
-							<li>
-								It still needs a few more features:
-								<ul>
-									<li>accessing a single value from a vector</li>
-									<li>string manipulation</li>
-								</ul>
-							</li>
-						</ul>
-					</li>
-					<li>
-						Actually test the compiler
-						<ul>
-							<li>It is programmed in a way that it assumes that all of the code it receives is correct.</li>
-							<li>But sometimes it is not so, and it will crash.</li>
-							<li>So that means that the compiler should be made so that it doesn't crash.</li>
-						</ul>
-					</li>
-				</ul>
+			<p>
+				To use the LIGMAScript, simply compile it. The main.cpp has a 
+				simple runtime, but ideally you'd compile without main() and 
+				instead would embed the VM in an application.
+			</p>
+			
+			<h3>Notes</h3>
+			<ol>
+				<li id="note-best-lang">
+					It already is.
+				</li>
+				<li id="note-no-functions">
+					We lied. LIGMAScript has lots of functions. That's why 
+					it's called a functional language.
+				</li>
+				<li id="note-keyword-count">
+					Extra zero at the end.
+				</li>
+				
+			</ol>
 
-				<h3>How to achieve the LIGMAScript</h3>
-				<p>
-					There's is still no very large release, but it's possible to access the source code of the LIGMAScript on the <a href="https://github.com/racenis/ligmascript">github.com</a>.
-				</p>
-				<p>
-					To use the LIGMAScript, simply compile it. The main.cpp has some example usage.
-				</p>
-
-				<center>LIGMAScript &copy; LIGMAScript Authors 2022.</center>
+			<center>LIGMAScript &copy; LIGMAScript Authors 2022&ndash;2023.</center>
 		</td>
 	</tr>
 </table>
