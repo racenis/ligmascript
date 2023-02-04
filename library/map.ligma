@@ -1,0 +1,51 @@
+; LIGMAScript v0.1.0 Standard Library :: Map functions :: map.ligma
+
+; By 'map' we mean a list of key-value pairs.
+; Also known as an associative array or a dictionary.
+
+; Library maps are implemented as lists of lists of key-value pairs. Like this:
+; (list (list `key1 `value1) (list `key2 `value2) (list `key3 `value3))
+
+; Inserts a key-value pair into a map
+; Does not check for duplicates. Returns the new map.
+; (map, key, val) -> (map)
+map:insert (lambda 
+	(list ) swap over swap setdata		; (list val)
+	(list ) swap over swap setnext		; (list nil val)
+	swap over swap setdata				; (list key val)
+	(list ) swap over swap setdata		; (list (list key val))
+	swap over swap setnext				; (list (list key val) map)
+) set
+
+; Finds a value in a map from its key.
+; If the key was found in the map, then returns its value.
+; Otherwise returns nil.
+; (map, key) -> (val)
+map:find (lambda 
+	over data data over ==
+	if (drop data next data return)		; found
+	swap dup next nil ==
+	if (drop drop nil return)			; not found
+	next swap repeat
+) set
+
+map:remove (lambda
+	over swap over data data over ==	; check if first one is the removable
+	if (drop drop next return)			; if yes, then skip and return
+
+	(lambda
+		over nil ==						; check if we're at the end of the map
+		if (drop drop return)
+		over next data data over ==		; check if need to remove	
+		if (drop dup next next setnext return)
+		swap next swap repeat			; go to the next one
+	) do
+) set
+
+map:print (lambda
+	dup nil == if (drop return)
+	dup data dup data .
+	": " .
+	next data . cr
+	next repeat
+) set

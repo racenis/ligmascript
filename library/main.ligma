@@ -1,0 +1,19 @@
+; This is some code for the example runtime in the main.cpp.
+
+not-part-of-std-lib (lambda
+	"Congratulations!" . cr
+	"You have called a function that is not a part of the LIGMASCRIPT " .
+	"standard library." . cr cr
+	
+	not-part-of-std-lib:counter dup dup 1 + set	; This increments the counter.
+	
+	"You have done so " . . " times." . cr
+	
+	not-part-of-std-lib:counter 2 > if (
+		"Congratulations! The program will now crash!" . cr
+		explode
+	)
+	
+) set
+
+not-part-of-std-lib:counter 0 set

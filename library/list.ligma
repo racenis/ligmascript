@@ -1,0 +1,135 @@
+; LIGMAScript v0.1.0 Standard Library :: List functions :: list.ligma
+
+; Prints a list.
+; (lst) -> (); where 'lst' is the first link of a list.
+list:print (lambda
+	"[" .
+	(lambda
+		dup data dup type type:list ==		; if is list itself
+		if (list:print) else (.)
+		dup next nil ==
+		if (drop return)
+		", " .
+		next repeat
+	) do
+	"]" .
+) set
+
+; Compares two lists.
+; (lst1, lst2) -> (true/false)
+list:equal (lambda
+	; TODO: implement
+) set
+
+; Applies a function to each element of a list.
+; (lst, func) -> (lst)
+list:map (lambda
+	; TODO: implement
+) set
+
+; Appends a list to another list.
+; (lst1, lst2) -> (lst3)
+list:append (lambda
+	; TODO: implement
+) set
+
+; Appends a list to the end of the list.
+; (lst, elem) -> (lst)
+list:push-back (lambda
+	; TODO: implement
+) set
+
+; Appends a list to the beginning of the list.
+; (lst, elem) -> (lst)
+list:push-front (lambda
+	; TODO: implement
+) set
+
+; Reduces a list.
+; (lst, sum, func) -> (sum)
+list:reduce (lambda 			; (lst, sum, sum-func) -> (sum)
+	(declare lst sum sum-func)	; locals
+	
+	[sum-func] swap set			; setting locals
+	sum swap set
+	lst swap set
+	
+	lst data sum sum-func		; apply accum-func to list data	
+	sum swap set				; set the new sum
+	
+	sum lst next nil =			; check if can exit
+	if (return) else (drop)		; exit or continue
+	
+	lst lst next set				; advance the list
+	
+	lst sum [sum-func]			; pushing parameters back in
+	repeat
+) set
+
+; Takes in a list and sums up its members.
+; (lst) -> (sum)
+list:sum (lambda
+	0 (lambda +) list:reduce
+) set
+
+; Takes in a list and multiplies up its members.
+; (lst) -> (sum)
+list:product (lambda
+	0 (lambda *) list:reduce
+) set
+
+; Finds the smallest element in the list.
+; (lst) -> (elem)
+list:min (lambda
+	; TODO: implement
+) set
+
+; Finds the largest element in the list.
+; (lst) -> (elem)
+list:max (lambda
+	; TODO: implement
+) set
+
+; Filters a list.
+; (lst, func) -> (lst)
+list:filter (lambda
+	; TODO: implement
+) set
+
+; Finds the last link of the list.
+; (lst) -> (lst)
+list:last (lambda
+	; TODO: implement
+) set
+
+; Reverses a list.
+; (lst) -> (tsl)
+list:reverse (lambda
+	nil swap
+	(lambda 
+		dup next
+		rot rot
+		over over
+		swap setnext
+		swap drop
+		swap
+		
+		dup nil ==
+		if (return)
+	repeat) do
+	drop
+) set
+
+is-impressive (lambda
+	100 > if (
+		"yes, it's an impressive" . cr
+	) else (
+		"no, it's not impressive at all" . cr
+	)
+) set
+
+; Since the language doesn't have any standard way to get command line input,
+; you'd have to load it into the interpreter in the REPL mode and then you could
+; call the is-impressive subroutine like this:
+
+150 is-impressive 

@@ -1,0 +1,41 @@
+; LIGMAScript v0.1.0 Standard Library :: Type functions :: type.ligma
+
+; Returns true if value is an integer.
+; (value) -> (true/false)
+type:is-int (lambda 
+	type dup type:int 		==
+	over type:int8 			== or
+	over type:int16 		== or
+	over type:int32 		== or
+	over type:int64 		== or
+	swap drop
+) set
+
+; Returns true if value is a floating-point.
+; (value) -> (true/false)
+type:is-float (lambda 
+	type dup type:float 	==
+	over type:float32 		== or
+	over type:float64		== or
+	swap drop
+) set
+
+; Returns true if value is a string.
+; (value) -> (true/false)
+type:is-string (lambda 
+	type dup type:string 	==
+	over type:cstring		== or
+	swap drop
+) set
+
+; Converts an integer or a floating-point to an integer.
+; (int/float) -> (int)
+type:to-int (lambda 
+	floor
+) set
+
+; Converts an integer or a floating-point to a floating-point.
+; (int/float) -> (float)
+type:to-float (lambda 
+	0.0 *
+) set

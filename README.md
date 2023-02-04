@@ -4,15 +4,19 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 
 ### To-do list
 
-- fix compiler making an error 
-	- "list not list appendable" when a block (should be no error)
-- add `==` operator
-	- this operator would check if two references are the same, not their contents
-	- also make `=` operator work on strings
-- make values possible to be read-only
-	- this would prevent accidentaly modifying literals with the `move` keyword
-- use the same true/false value for all comparisons, instead of creating a new one every time
-	- makes the intepreter go vroom vroom by yeeting unnecessary memory allocations
+- Rewrite tokenizer function
+- Add labels
+	- Add GOTO
+- Think of some more stuff to add to the standard library
+- Write some tests
+- Add error checks to the compiler
+	- There are no error checks
+- Make compiled bytecode seriazibleble
+
+- Create a proper runtime
+	- Like node.js, but for LIGMAScript
+	- Also write a text editor
+	- And then a kernel, just in case
 
 #### Stuff that will take some longer time
 - namespaces
@@ -23,7 +27,7 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 #### Hello world
 
 ```
-"hellow wworld uwu ;33" print 
+"hellow wworld" . cr  
 ```
 
 #### Reverse linked list
@@ -52,10 +56,10 @@ reverse-list
 
 ```
 fibonacci (lambda 
-	dup 0 = if (
+	dup 0 == if (
 		drop 0
 	) else (
-		dup 1 = if (
+		dup 1 == if (
 			drop 1
 		) else (
 			dup 1 - fibonacci
@@ -65,14 +69,25 @@ fibonacci (lambda
 	)
 ) set
 
-"f(5):%t" . 5 fibonacci . `%n . ; will print 'f(5): 5'
-"f(6):%t" . 6 fibonacci . `%n . ; will print 'f(6): 8'
-"f(7):%t" . 7 fibonacci . `%n . ; will print 'f(7): 13'
+"f(5): " . 5 fibonacci . cr ; will print 'f(5): 5'
+"f(6): " . 6 fibonacci . cr ; will print 'f(6): 8'
+"f(7): " . 7 fibonacci . cr ; will print 'f(7): 13'
 ```
 
 ## Compilation
 
-Left as an exercise for the reader.
+I have no makefiles. Dump all of the .cpp files from the /src/ directory into 
+your favorite IDE or makefile generator. 
+
+If you want to embed the interpreter/compiler into your own program, then 
+exclude the main.cpp from the static library. 
+
+If you want to run LIGMAScript in a REPL loop, then do include the main.cpp and 
+compile everything as an executable. You might want to edit the main.cpp to make 
+the runtime load in all of the LIGMAScript standard library.
+
+The only dependencies are the C++ standard library. I have only tested it on the 
+MinGW/gcc compiler, but it should work with any compiler that supports C++98.
 
 ## Copyright
 
