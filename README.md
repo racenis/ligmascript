@@ -50,7 +50,7 @@ reverse-list (lambda
 (list 1 2 3 4 5 6 7 8 9 10) dup
 "list:    " . list:print cr 	; will print 'list:     [1, 2, 3 ...]'
 reverse-list
-"reversed:" . list:print cr		; will print 'reversed: [10, 9, 8 ...]'
+"reversed:" . list:print cr	; will print 'reversed: [10, 9, 8 ...]'
 ```
 
 ### Fibonacci sequence
@@ -72,7 +72,7 @@ fibonacci (lambda
 
 "f(5): " . 5 fibonacci . cr 	; will print 'f(5): 5'
 "f(6): " . 6 fibonacci . cr 	; will print 'f(6): 8'
-"f(7): " . 7 fibonacci . cr		; will print 'f(7): 13'
+"f(7): " . 7 fibonacci . cr	; will print 'f(7): 13'
 ```
 
 ## Compilation

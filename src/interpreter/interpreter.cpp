@@ -516,6 +516,8 @@ for (size_t i = 0; i < iterations; i++) {
             
             if (p1->atom_value == ATOM_TRUE && p2->atom_value == ATOM_TRUE) {
                 ref_stack.push(ATOM_TRUE);
+            } else if ((p1->atom_value != ATOM_FALSE && p2->atom_value != ATOM_FALSE)) {
+                ref_stack.push(ATOM_MAYBE);
             } else {
                 ref_stack.push(ATOM_FALSE);
             }
@@ -533,6 +535,8 @@ for (size_t i = 0; i < iterations; i++) {
             
             if (p1->atom_value == ATOM_TRUE || p2->atom_value == ATOM_TRUE) {
                 ref_stack.push(ATOM_TRUE);
+            } else if (p1->atom_value == ATOM_MAYBE || p2->atom_value == ATOM_MAYBE) {
+                ref_stack.push(ATOM_MAYBE);
             } else {
                 ref_stack.push(ATOM_FALSE);
             }
@@ -547,10 +551,12 @@ for (size_t i = 0; i < iterations; i++) {
                 assert(false && "THROW ERROR, JUMP IF NOT ATOM");
             }
             
-            if (p1->atom_value != ATOM_TRUE) {
+            if (p1->atom_value == ATOM_TRUE) {
+                ref_stack.push(ATOM_FALSE);
+            } else if (p1->atom_value == ATOM_FALSE) {
                 ref_stack.push(ATOM_TRUE);
             } else {
-                ref_stack.push(ATOM_FALSE);
+                ref_stack.push(ATOM_MAYBE);
             }
             
             CleanWord (p1);
