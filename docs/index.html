@@ -34,6 +34,12 @@
 				best programming language ever.
 				<a href="#note-best-lang"><sup>[1]</sup></a>
 			</p>
+			
+			<p>
+				<a target="_blank" href="ligmabook/ligmabook.pdf">
+					Click here for the draft of the LIGMAScript manual/guide!
+				</a>
+			</p>
 
 			<table width="400" align="center" border="1" bgcolor="black" background="background_sparkle.gif">
 				<tr><td colspan="2"><b><center><font color="white" size="4">STATUS</font></center></b></td></tr>
@@ -86,12 +92,12 @@
 			<p>
 				LIGMAScript Virtual Machine is designed in such a way that it 
 				doesn't crash (and when it does it's always intentional). 
-				The VM also prevents memory leaks, by collecting the garbage, 
-				but the garbage collection is optional and if you want you can 
-				leak some memory.
+				The VM also prevents memory leaks, by collecting the garbage
+				(reference counted, for maximum speed)
 			</p>
 			<p>
-				LIGMAScript memory model consists of one very large array. This 
+				LIGMAScript VM implements an innovative memory model which 
+				consists of one very large array. This 
 				ensures zero memory fragmentation. Supports up to 65000
 				different values (you will not need more).
 			</p>
@@ -110,7 +116,7 @@
 
 			<h4>Hello World</h4>
 			<code>
-				"hellow wworld" . cr
+				"hello world" . cr
 			</code>
 
 			<h4>Is Impressive</h4>
@@ -152,7 +158,7 @@
 					it's called a functional language.
 				</li>
 				<li id="note-keyword-count">
-					Last digit is a typo.
+					Last digit is a typographical error.
 				</li>
 				
 			</ol>

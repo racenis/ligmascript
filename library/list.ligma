@@ -119,17 +119,3 @@ list:reverse (lambda
 	repeat) do
 	drop
 ) set
-
-is-impressive (lambda
-	100 > if (
-		"yes, it's an impressive" . cr
-	) else (
-		"no, it's not impressive at all" . cr
-	)
-) set
-
-; Since the language doesn't have any standard way to get command line input,
-; you'd have to load it into the interpreter in the REPL mode and then you could
-; call the is-impressive subroutine like this:
-
-150 is-impressive 

@@ -8,6 +8,7 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 - Add labels
 	- Add GOTO
 - Think of some more stuff to add to the standard library
+- Write some modules
 - Write some tests
 - Add error checks to the compiler
 	- There are no error checks
@@ -18,60 +19,60 @@ Very good programming language. The name stands for **LI**st **G**eneral **M**an
 	- Also write a text editor
 	- And then a kernel, just in case
 
-#### Stuff that will take some longer time
-- namespaces
-- a small standard library
 
 ## Example
 
-#### Hello world
+### Hello world
 
 ```
-"hellow wworld" . cr  
+"hello world" . cr  
 ```
 
-#### Reverse linked list
+### Reverse linked list
 
 ```
-reverse-list (lambda 
-	dup cdr dup
-	if (
-		over nil setcdr
-		(lambda 
-			dup cdr rot rot
-			swap over swap setcdr
-			swap dup if () else (drop return)
-			recurse
-		) execute 
-	) else (return)
+reverse-list (lambda
+    nil swap
+    (lambda 
+        dup next
+        rot rot
+        over over
+        swap setnext
+        swap drop
+        swap
+        
+        dup nil ==
+        if (return)
+    repeat) do
+    drop
 ) set
 
 (list 1 2 3 4 5 6 7 8 9 10) dup
-"linked list:%t" . . ; will print 'linked list: [1, 2, 3 ...]'
+"list:    " . list:print cr 	; will print 'list:     [1, 2, 3 ...]'
 reverse-list
-"%nin reverse:%t" . . ; will print 'in reverse: [10, 9, 8 ...]'
+"reversed:" . list:print cr		; will print 'reversed: [10, 9, 8 ...]'
 ```
 
 ### Fibonacci sequence
 
 ```
 fibonacci (lambda 
-	dup 0 == if (
-		drop 0
-	) else (
-		dup 1 == if (
-			drop 1
-		) else (
-			dup 1 - fibonacci
-			over 2 - fibonacci
-			+ swap drop
-		)
-	)
+    dup 0 == if (
+        drop 0
+    ) else (
+        dup 1 == if (
+            drop 1
+        ) else (
+            dup 1 - fibonacci
+            over 2 - fibonacci
+            + swap drop
+        )
+    )
 ) set
 
-"f(5): " . 5 fibonacci . cr ; will print 'f(5): 5'
-"f(6): " . 6 fibonacci . cr ; will print 'f(6): 8'
-"f(7): " . 7 fibonacci . cr ; will print 'f(7): 13'
+"f(5): " . 5 fibonacci . cr 	; will print 'f(5): 5'
+"f(6): " . 6 fibonacci . cr 	; will print 'f(6): 8'
+"f(7): " . 7 fibonacci . cr		; will print 'f(7): 13'
 ```
 
 ## Compilation

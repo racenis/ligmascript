@@ -3,6 +3,7 @@
 
 namespace ligma {
 
+/// Token categorization function.
 token_t GetTokenFromString (const char* string) {
     switch (*string) {
         case '\n': return TOKEN_NEWLINE;
@@ -132,6 +133,7 @@ token_t GetTokenFromString (const char* string) {
     return TOKEN_WORD;
 }
 
+// TODO: yeet this
 token_t GetNextTokenFromString (const char* string) {
     switch (*string) {
         case '(': return TOKEN_OPEN_BLOCK;

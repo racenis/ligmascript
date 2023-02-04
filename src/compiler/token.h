@@ -76,7 +76,7 @@ enum token_t {
     TOKEN_OPERATOR_EXECUTE,         // do
     TOKEN_OPERATOR_TYPE,            // type
 
-    TOKEN_OPERATOR_IDENTITY,        // =
+    TOKEN_OPERATOR_IDENTITY,        // is
 
     TOKEN_CONTROL_IF,               // if
     TOKEN_CONTROL_ELSE,             // else

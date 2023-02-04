@@ -1,4 +1,4 @@
-// This is a minimal runtime for the LIGMAScript version 0.0.1
+// This is a minimal runtime for the LIGMAScript version 0.1.0
 
 // If you want to embed the LIGMAScript into your own program, then exclude
 // this file when compiling the library and re-implement it in your own program.

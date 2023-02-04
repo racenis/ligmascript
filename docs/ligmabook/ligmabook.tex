@@ -1,0 +1,375 @@
+\documentclass[12pt]{article}
+\usepackage{pdfpages}
+\usepackage{newtxtext}
+\usepackage{parskip}
+\usepackage{fancyvrb}
+\begin{document}
+
+\title{LIGMAScript}
+\author{Jānis Dambergs}
+\date{2022}
+
+\includepdf[pages=-]{ligmacover.pdf}
+
+\begin{center} \textit{(page intentionally left blank)} \end{center}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\begin{center} \Huge{LIGMAScript} \end{center}
+
+\begin{center} \large{The Programming Language} \end{center}
+
+\vspace{4em}
+
+This book introduces the LIGMAScript programming language.
+
+\subsection*{Intended audience}
+
+Anyone with a basic understanding of modern digital computer programming.
+
+\section{Introduction}
+
+LIGMAScript is a high-level general-purpose programming language for digital computers.
+
+The LIGMAScript contains only a handful of constructs, making the time spent learning of the language and 
+writing an implementation extremely short.
+
+The language is intended to be extremely portable and embeddable, it is without any built-in system calls 
+or any similar contraptions.
+
+In order to achieve these goals, the LIGMAScript language is intended to be compiled to byte-code and run 
+in a virtual-machine. 
+
+There currently exists a single implementation of both a LIGMAScript byte-code compiler and a LIGMAScript 
+byte-code virtual-machine. It is implemented in C++98.
+
+
+
+\section{Getting started}
+
+The only way to learn a new programming language is by writing programs in it. The first program to write 
+is the same for all languages:
+
+\begin{verbatim}"hello, world" print\end{verbatim}
+
+
+The syntax of the language consists of words and brackets. That is all that is necessary. In this program 
+\emph{``hello, world''} is a word-literal and \emph{print} is a word-function. When the program gets executed, each 
+word in it also gets executed. As a word-literal, \emph{``hello, world''} is executed by pushing its value unto 
+the value stack. The \emph{print} word, as it is a word-function, gets executed by executing its instructions, i.e. taking the value on the top 
+of the stack and printing it to the console.
+
+There are also word-values with names. These are, what are called, \emph{variables} in other languages. Let's take the variable declaration from the C language:
+\begin{verbatim}x = 420 + 69;\end{verbatim}
+The C language takes the value of the number \emph{420} and the number \emph{69}, computes their sum and them stores it 
+in the variable \emph{x}. In LIGMAScript the equivalent is this:
+\begin{verbatim}x 420 69 + set\end{verbatim}
+The LIGMAScript pushes the word \emph{x} unto the stack. It then pushes the word-literal \emph{420} and the word-literal 
+\emph{69} unto the stack. After that it takes the top two words on the stack, that is, word-literals \emph{420} and \emph{69} 
+and computes their sum and pushes the sum unto the stack. Finally the remaining two values on the stack 
+get taken off of it and the value of the upper word gets copied into the lower value, that is, the integer 
+\emph{489} gets stored in the word \emph{x}.
+
+The LIGMAScript stack is a special memory location in the LIGMAScript virtual-machine, similar to the registers of a conventional processor. 
+Unlike conventional processors, in the case of  LIGMAScript, 
+the stack stores references to words, not the words themselves. The contents of the stack can be printed at any time by using the \emph{.s} word-function.
+
+For example, to display the contents of the stack during the computation in the previous example you could use:
+\begin{verbatim}420 69 .s + .s\end{verbatim}
+This would print the stack once after the integer \emph{420} and \emph{69} are pushed unto the stack, and again, after the computation of their sum:
+\begin{verbatim}
+[420 | INT] [69 | INT]
+[489 | INT]
+\end{verbatim}
+
+We can also store multiple number values in a single word by using vectors:
+\begin{verbatim}(vec 1 2 3)\end{verbatim}
+All regular arithmetic operations can also be used on these values:
+\begin{verbatim}(vec 1 2 3) 420 * print\end{verbatim}
+This will output the computed value to the console:
+\begin{verbatim}(420, 840, 1260)\end{verbatim}
+It is only allowed to perform an arimthetic operation on a vector if the second value is either a single value or a vector of the 
+same size, like this:
+\begin{verbatim}(vec 420 420 420) (vec 69 69 69) +\end{verbatim}
+Which will compute to value \emph{(489, 489, 489)}.
+
+In case it is needed to store multiple values that are not numbers, or need to frequently change the size 
+of, you can use lists:
+\begin{verbatim}(list 420 69 "very nice")\end{verbatim}
+It is even possible to store lists inside of lists:
+\begin{verbatim}(list (list 420 69) "very nice")\end{verbatim}
+
+Some word-functions, such as \emph{print} are implemented in the LIGMAScript virtual machine as a bytecode instruction, but we can also 
+create our own word-functions through LIGMAScript code:
+\begin{verbatim}(lambda "hello, world" print)\end{verbatim}
+
+This statement will push the word-function to the stack. If we assign it to a word, we can execute it like 
+any other word:
+\begin{verbatim}hello-world (lambda "hello, world" print) set
+hello-world\end{verbatim}
+This generates the same output as the first example in this book.
+
+LIGMAScript does not support archaic concepts like loops, but is possible to divert the control flow of 
+the program to the beginning of the function by using the "repeat" key-word:
+\begin{verbatim}(lambda "hello, world" print repeat)\end{verbatim}
+Do not run this function. It will cause your computer to catch on fire and explode. Instead, it is needed to add a stopping condition 
+to the function:
+\pagebreak
+\begin{Verbatim}
+hello-worlds (lambda 
+    (declare hello-loop)
+    hello-loop (lambda
+        dup 10 > if (               ; check for stopping
+            return                  ; if is time to stop, stop
+        ) else (                    ; if there is no time to stop
+            1 +                     ; increase stopping counter
+        )
+
+        "hello, world" print cr     ; print some text
+        repeat                      ; start again
+    ) set
+
+    0 hello-loop                    ; initialize stopping value and loop
+) set
+\end{Verbatim}
+
+\section{Continuing after starting}
+
+\subsection{Words}
+
+As with most programming languages, there are restrictions on the names of words. LIGMA\-Script words cannot begin 
+with the following symbols:
+\begin{verbatim}( ) [ ] * / + - 0 1 2 3 4 5 6 7 8 9 ` " . > < = ! \end{verbatim}
+Also these names cannot be the names of other words or built-in words.
+
+\subsubsection{Word types}
+
+The LIGMAScript language defines only these word types:
+\begin{verbatim}
+ATOM
+INTEGER
+FLOATING-POINT
+STRING
+FUNCTION
+LIST-SEGMENT
+\end{verbatim}
+There would be no need for more types, but since language must co-operate with the C++98 language, there 
+are more types:
+\begin{verbatim}
+INT8
+INT16
+INT32
+INT64
+FLOAT32
+FLOAT64
+CSTRING
+CFUNCTION
+\end{verbatim}
+These types can only be inserted into the LIGMAScript virtual machine from C++98 code, however their usage 
+in the LIGMAScript code is the same as their respective LIGMAScript types.
+The vector types of numbers are simply the values being repeated, as in arrays of other languages.
+
+There is no need to declare the global words, the LIGMAScript virtual-machine will declare them when the 
+code is loaded for execution.
+However, in order to distinguish global words from function-local words, it is necessary to declare the 
+local words like this:
+\begin{verbatim}(declare word1 word2 word3)\end{verbatim}
+This declaration should occur only at the beginning of a function. It can be done anywhere else, but it 
+will cause memory leaks, so it is not recommended to do so.
+
+\subsection{Arithmetic}
+There are built-in arithmetic operations in the LIGMAScript:
+\begin{verbatim}+ - / * floor\end{verbatim}
+The floor operation converts a number to a number that is not a FLOATING-POINT. Other operations are 
+defined in the LIGMAScript Standard Library.
+
+\subsection{Logic}
+There are built-in arithmetic comparisons:
+\begin{verbatim}> >= < <= \end{verbatim}
+These can only be used on number types.
+Non-arithmetic comparisons:
+\begin{verbatim}== != is\end{verbatim}
+These can also be used on atom, string and list types. The \emph{==} and \emph{!=} compare the values of the words, 
+the \emph{is} operator compares whether the words are the same word.
+
+All of these word-functions take their arguments and produce an atom \emph{true} or \emph{false}. These atoms can
+then be further used with logical operators:
+\begin{verbatim}and or not\end{verbatim}
+
+\subsection{Control flow}
+LIGMAScript supports the \emph{if/if-else} statements common to other languages:
+\begin{verbatim}
+if (do-something)
+if (do-something) else (do-other-thing)
+\end{verbatim}
+When the control reaches the \emph{if} key-word, a word from the top of the stack will be removed. If this word is the atom \emph{true}, 
+then control flow will step into the subsequent block, 
+otherwise it will continue after it, or if an \emph{else} key-word is present, step into the block subsequent to it.
+
+Also is the possibility to either step out of a function with \emph{return} or go back to the beginning of a 
+function with \emph{repeat}:
+
+\begin{verbatim}(lambda do-something if (return) else (repeat))\end{verbatim}
+
+\subsection{Comments}
+In LIGMAScript the comments are preceded by the \emph{;} character. Everything after the character until the next 
+new line, will be ignored by the compiler. For an example:
+\begin{Verbatim}
+420 69 + print    ; this prints the sum of 420 and 69
+"very nice"       ; this prints very nice
+\end{Verbatim}
+when executed will output \emph{489 very nice} to the console.
+
+\subsection{Functions}
+
+Functions in LIGMAScript are simply words that as their value either have a LIGMAScript or a C++98 
+function.
+
+\subsection{Lists}
+
+Lists in LIGMAScript are stored in the well-know linked-list manner. If we evaluate
+\begin{verbatim}(list 1 2 3)\end{verbatim}
+we will get the first link of the list on our stack. We can retrieve its value with \emph{data}:
+\begin{verbatim}(list 1 2 3) data\end{verbatim}
+This evaluates to the number value 1. We can retrieve the next segment with \emph{next}:
+\begin{verbatim}(list 1 2 3) next\end{verbatim}
+This evaluates to the second segment of the list. We can then retrieve its value as well,
+\begin{verbatim}(list 1 2 3) next data\end{verbatim}
+will evaluate to the number value 2. If we use \emph{next} to reach the end of the list,
+\begin{verbatim}(list 1 2 3) next next next\end{verbatim}
+we will get the atom \emph{nil} on our stack. You can use 
+\begin{verbatim}(list 1) next nil ==\end{verbatim}
+to test for this value.
+
+Here's a small function that will take a linked list on the stack and repeat until it prints all of its 
+values out:
+\begin{Verbatim}
+(lambda
+    dup data print cr
+    dup next nil ==
+    if (
+        drop return
+    ) else (
+        repeat
+    )
+)
+\end{Verbatim}
+
+\section{Standard Library}
+
+// TODO
+
+\section{Modules}
+
+LIGMAScript modules are collections of additional \emph{C++98} functions that can be added to the LIGMAScript virtual-machine.
+
+\subsection {Minimal runtime}
+
+The minimal runtime for implements a single function ``exit'' which can be used to terminate the runtime's REPL loop. It takes no parameters and returns nothing.
+
+// TODO
+
+\section{Runtime}
+
+LIGMAScript is designed to be an embeddable language, and as such is embeddable into any kind of runtime that has the ability to call \emph{C++98} functions.
+%However, to facilitate the ease of use in a general programming environment, a LIGMAScript Runtime has been created.
+
+// TODO
+
+\section{Reference}
+
+\subsection {Keywords}
+
+\begin{center}
+\begin{tabular}{ | l | p{9cm} | }
+\hline
+\textbf{Keyword} & \textbf{Description} \\ \hline
+
+\verb|+| & Arithmetic addition of two numbers. \\ \hline
+\verb|-| & Arithmetic subtraction of two numbers. \\ \hline
+\verb|*| & Arithmetic multiplication of two numbers. \\ \hline
+\verb|/| & Arithmetic division of two numbers. \\ \hline
+\verb|..| & Prints metadata of a word. \\ \hline
+\verb|==| & Value equality comparision of two values. Can be used on atoms, strings and numbers. \\ \hline
+\verb|!=| & Value inequality comparision of two values. Can be used on atoms, strings and numbers. \\ \hline
+\verb|>| & Arithmetic greater than comparision of two values. \\ \hline
+\verb|<| & Arithmetic lesser than comparision of two values. \\ \hline
+\verb|>=| & Arithmetic greater than or equal comparision of two values. \\ \hline
+\verb|<=| & Arithmetic lesser than of equal comparision of two values. \\ \hline
+\verb|and| & Logical conjunction. \\ \hline
+\verb|cr| & Prints a new line character. \\ \hline
+\verb|data| & Extracts the data reference from a list-link word. \\ \hline
+\verb|.s| & Stack print. Prints the stack. Can be used anywhere. \\ \hline
+\verb|declare| & Declaration block type declaration. Every symbol inside of this block will be considered by the compiler to be a word local to a function. 
+	Can only be used inside of functions. \\ \hline
+\verb|do| & Executes a function from the stack. \\ \hline
+\verb|dup| & Duplicates the word on the top of the stack. \\ \hline
+\verb|drop| & Discards the word on the top of the stack. \\ \hline
+\verb|else| & Defines an \emph{else} block. Subsequent to the \emph{if} block and preceding the \emph{else} block in an \emph{if/else} statement. \\ \hline
+\verb|explode| & Sets the machine on fire and explodes. \\ \hline
+
+\end{tabular}
+
+\begin{tabular}{ | l | p{9cm} | }
+\hline
+\textbf{Keyword} & \textbf{Description} \\ \hline
+
+\verb|fail| & Atom. Returned by functions that can fail and used to indicate failure of some kind. \\ \hline
+\verb|false| & Atom. Returned by logic functions and used to indicate a false logic value. \\ \hline
+\verb|floor| & Converts a floating-point word to an integer word, or leaves it as is if it's an integer. \\ \hline
+
+\verb|if| & Defines an \emph{if} block. Preceding the \emph{if} block in an \emph{if/else} statement. \\ \hline
+\verb|is| & Compares two references, i.e. if they are a reference to the same word. \\ \hline
+
+\verb|lambda| & Function block type declaration. All code inside of this block will be considered by the compiler to be a part of a function. \\ \hline
+\verb|len| & Measures the length of vectors. \\ \hline
+\verb|list| & List block type declaration. Every word inside of this block will be considered by the compiler to be a word that is to be appended to a list. \\ \hline
+\verb|type| & Measures the type of a word. \\ \hline
+
+\verb|true| & Atom. Returned by logic functions and used to indicate a true logic value. \\ \hline
+\verb|maybe| & Atom. Returned by logic functions and used to indicate a third logic value. \\ \hline
+\verb|mod| & Arithmetic remainder of a division of two numbers. \\ \hline
+
+\verb|next| & Extracts the next reference from a list-link word. \\ \hline
+
+\verb|nil| & Atom. Used so signify a non-existing word. \\ \hline
+\verb|not| & Logical negation. \\ \hline
+
+\verb|or| & Logical disjunction. \\ \hline
+\verb|ok| & Atom. Returned by functions that can succeed and used to indicate success of some kind.\\ \hline
+\verb|over| & Duplicates the word second word from the top of the stack. \\ \hline
+
+\verb|print| & Prints a word's value. \\ \hline
+
+\end{tabular}
+
+\begin{tabular}{ | l | p{9cm} | }
+\hline
+\textbf{Keyword} & \textbf{Description} \\ \hline
+
+\verb|set| & Sets a word's value to a value from an other word. \\ \hline
+\verb|setnext| & Sets the the next reference from a list-link word.  \\ \hline
+\verb|setdata| & Sets the the data reference from a list-link word. \\ \hline
+\verb|swap| & Swaps two words on the top of the stack. \\ \hline
+
+\verb|repeat| & Repeats a function. Can be used only in a function. \\ \hline
+\verb|return| & Returns from a function. Can be used only in a function. \\ \hline
+\verb|rot| & Rotates three words on the top of the stack, counter-clock-wise.  \\ \hline
+
+\verb|vec| & Vector block type declaration. Every word inside of this block will be considered by the compiler to be a value in a vector. \\ \hline
+\end{tabular}
+\end{center}
+
+\subsection {Functions}
+
+// TODO
+
+\subsection {Bytecode}
+
+// TODO
+
+\end{document}
